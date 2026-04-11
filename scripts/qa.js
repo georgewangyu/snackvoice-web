@@ -86,19 +86,20 @@ async function run() {
   await page.setRequestInterception(true);
   page.once("request", (req) => {
     if (req.url().includes("/api/create-checkout")) {
-      // Delay response to observe loading state
-      setTimeout(() => req.respond({ status: 200, contentType: "application/json", body: JSON.stringify({ url: `${BASE}/success.html` }) }), 300);
+      // Hold response briefly so we can observe the loading state
+      setTimeout(() => req.respond({ status: 200, contentType: "application/json", body: JSON.stringify({ url: "#" }) }), 500);
     } else {
       req.continue();
     }
   });
 
   await page.click("#hero-cta");
-  // Button should show loading text while request is in flight
-  await page.waitForTimeout(50);
+  await new Promise((r) => setTimeout(r, 80));
   const btnText = await page.$eval("#hero-cta", (el) => el.textContent.trim());
   assert("CTA shows loading state on click", btnText === "Loading…");
 
+  // Wait for interception to complete, then disable
+  await new Promise((r) => setTimeout(r, 600));
   await page.setRequestInterception(false);
 
   // ── Success page ──────────────────────────────────────────────────────────
