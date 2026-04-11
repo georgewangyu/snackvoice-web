@@ -7,7 +7,8 @@
     "start":    "node backend/server.js",
     "dev":      "node backend/server.js",
     "qa":       "node scripts/qa.js",
-    "qa:flow":  "node scripts/qa.js"
+    "qa:flow":  "node scripts/qa.js",
+    "dev:full": "bash scripts/dev.sh"
   },
   "dependencies": {
     "nodemailer": "^6.9.13"

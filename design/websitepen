@@ -1,0 +1,1081 @@
+{
+  "version": "2.10",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 0,
+      "y": 0,
+      "name": "Frame",
+      "clip": true,
+      "width": 800,
+      "height": 600,
+      "fill": "#FFFFFF",
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "sv55m",
+      "x": 0,
+      "y": 700,
+      "name": "Option A — Clean Minimal",
+      "width": 1440,
+      "height": 960,
+      "fill": "#FFFFFF",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "YUDc9",
+          "x": 0,
+          "y": 0,
+          "name": "Nav",
+          "width": 1440,
+          "height": 72,
+          "fill": "#FFFFFF",
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "4Du6z",
+              "name": "logoA",
+              "fill": "#000000",
+              "content": "SnackVoice",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "AEvhJ",
+              "name": "navLinksA",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "BxwWK",
+                  "name": "navLink1A",
+                  "fill": "#666666",
+                  "content": "Features",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "GXdb6",
+                  "name": "navLink2A",
+                  "fill": "#666666",
+                  "content": "Pricing",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "sBFfg",
+                  "name": "navBtnA",
+                  "fill": "#000000",
+                  "cornerRadius": 6,
+                  "padding": [
+                    10,
+                    20
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "EpzYr",
+                      "name": "navBtnTxtA",
+                      "fill": "#FFFFFF",
+                      "content": "Get for $49",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "h8eOo",
+          "x": 1440,
+          "y": 0,
+          "name": "Hero",
+          "width": 800,
+          "layout": "vertical",
+          "gap": 28,
+          "children": [
+            {
+              "type": "text",
+              "id": "nzzLp",
+              "name": "eyebrowA",
+              "fill": "#AAAAAA",
+              "content": "SPEECH TO TEXT FOR MAC",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 3
+            },
+            {
+              "type": "text",
+              "id": "VbGkx",
+              "name": "headlineA",
+              "fill": "#000000",
+              "textGrowth": "fixed-width",
+              "width": 780,
+              "content": "Your voice,\neverywhere\nyou type.",
+              "lineHeight": 1.05,
+              "fontFamily": "Inter",
+              "fontSize": 80,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "gOtqQ",
+              "name": "subA",
+              "fill": "#555555",
+              "textGrowth": "fixed-width",
+              "width": 520,
+              "content": "Local & private. No cloud. No subscription.\nOne payment — yours forever.",
+              "lineHeight": 1.65,
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "OKB8v",
+              "name": "ctaRowA",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QZzZ9",
+                  "name": "ctaBtnA",
+                  "fill": "#000000",
+                  "cornerRadius": 8,
+                  "padding": [
+                    18,
+                    32
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "tol2E",
+                      "name": "ctaBtnTxtA",
+                      "fill": "#FFFFFF",
+                      "content": "Get SnackVoice — $49",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "IGCvD",
+                  "name": "ctaSubA",
+                  "fill": "#999999",
+                  "content": "One-time purchase. No subscription.",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "4zSn5",
+          "x": 2240,
+          "y": 0,
+          "name": "Features",
+          "width": 1200,
+          "gap": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "DZDPO",
+              "name": "feat1A",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "Mwev6",
+                  "name": "feat1IconA",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "shield",
+                  "iconFontFamily": "lucide",
+                  "fill": "#000000"
+                },
+                {
+                  "type": "text",
+                  "id": "NYA2j",
+                  "name": "feat1TitleA",
+                  "fill": "#000000",
+                  "content": "100% Private",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "EZUg9",
+                  "name": "feat1SubA",
+                  "fill": "#777777",
+                  "textGrowth": "fixed-width",
+                  "width": 220,
+                  "content": "Runs entirely on your Mac.\nNo data ever leaves your device.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "2C0HF",
+              "name": "feat2A",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "n4QQk",
+                  "name": "feat2IconA",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "zap",
+                  "iconFontFamily": "lucide",
+                  "fill": "#000000"
+                },
+                {
+                  "type": "text",
+                  "id": "dxXz2",
+                  "name": "feat2TitleA",
+                  "fill": "#000000",
+                  "content": "Works Everywhere",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "9a45i",
+                  "name": "feat2SubA",
+                  "fill": "#777777",
+                  "textGrowth": "fixed-width",
+                  "width": 220,
+                  "content": "Types into any app — Notion,\nSlack, email, code editors.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "h1dIm",
+              "name": "feat3A",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "l5oZp",
+                  "name": "feat3IconA",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "package",
+                  "iconFontFamily": "lucide",
+                  "fill": "#000000"
+                },
+                {
+                  "type": "text",
+                  "id": "QIjwj",
+                  "name": "feat3TitleA",
+                  "fill": "#000000",
+                  "content": "Buy Once, Own It",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "j9Wi8",
+                  "name": "feat3SubA",
+                  "fill": "#777777",
+                  "textGrowth": "fixed-width",
+                  "width": 220,
+                  "content": "$49, forever. No monthly fees,\nno subscriptions, no surprises.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Fzrr3",
+      "x": 1500,
+      "y": 700,
+      "name": "Option B — Warm & Friendly",
+      "width": 1440,
+      "height": 960,
+      "fill": "#FAF8F4",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "n42dn",
+          "x": 0,
+          "y": 0,
+          "name": "Nav",
+          "width": 1440,
+          "height": 72,
+          "fill": "#FAF8F4",
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "tkWv9",
+              "name": "logoB",
+              "fill": "#1C1208",
+              "content": "SnackVoice",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "Yya5E",
+              "name": "navLinksB",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pAcje",
+                  "name": "navLink1B",
+                  "fill": "#8B6A3E",
+                  "content": "Features",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "EahqG",
+                  "name": "navLink2B",
+                  "fill": "#8B6A3E",
+                  "content": "Pricing",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "NdKK2",
+                  "name": "navBtnB",
+                  "fill": "#D95F28",
+                  "cornerRadius": 50,
+                  "padding": [
+                    10,
+                    22
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "xqIsm",
+                      "name": "navBtnTxtB",
+                      "fill": "#FFFFFF",
+                      "content": "Get for $49",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "wB9hZ",
+          "x": 120,
+          "y": 150,
+          "name": "Hero",
+          "width": 820,
+          "layout": "vertical",
+          "gap": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "Pv14K",
+              "name": "eyebrowB",
+              "fill": "#D95F28",
+              "content": "Mac Desktop App  ·  Local & Private",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "500",
+              "letterSpacing": 1
+            },
+            {
+              "type": "text",
+              "id": "JPAlx",
+              "name": "headlineB",
+              "fill": "#1C1208",
+              "textGrowth": "fixed-width",
+              "width": 800,
+              "content": "Speak naturally.\nType instantly.",
+              "lineHeight": 1.08,
+              "fontFamily": "Inter",
+              "fontSize": 80,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "I30TV",
+              "name": "subB",
+              "fill": "#6B4E2A",
+              "textGrowth": "fixed-width",
+              "width": 500,
+              "content": "SnackVoice runs entirely on your Mac. No cloud,\nno subscription — just your voice.",
+              "lineHeight": 1.65,
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Zi4XU",
+              "name": "ctaRowB",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "a1Vne",
+                  "name": "ctaBtnB",
+                  "fill": "#D95F28",
+                  "cornerRadius": 50,
+                  "padding": [
+                    18,
+                    36
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ikNp6",
+                      "name": "ctaBtnTxtB",
+                      "fill": "#FFFFFF",
+                      "content": "Get SnackVoice — $49",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "NoKyA",
+                  "name": "ctaSubB",
+                  "fill": "#B08060",
+                  "content": "One-time. No subscription.",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "gNvDL",
+          "x": 120,
+          "y": 740,
+          "name": "Features",
+          "width": 1200,
+          "gap": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "azsus",
+              "name": "feat1B",
+              "width": 260,
+              "fill": "#F0EBE3",
+              "cornerRadius": 16,
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "Lz3Mq",
+                  "name": "feat1IconB",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "shield-check",
+                  "iconFontFamily": "lucide",
+                  "fill": "#D95F28"
+                },
+                {
+                  "type": "text",
+                  "id": "V14C8",
+                  "name": "feat1TitleB",
+                  "fill": "#1C1208",
+                  "content": "100% Private",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "mj9Jn",
+                  "name": "feat1SubB",
+                  "fill": "#7A5C3A",
+                  "textGrowth": "fixed-width",
+                  "width": 212,
+                  "content": "Runs on your Mac. Zero data sent anywhere.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gSlU5",
+              "name": "feat2B",
+              "width": 260,
+              "fill": "#F0EBE3",
+              "cornerRadius": 16,
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "CKyrx",
+                  "name": "feat2IconB",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "layers",
+                  "iconFontFamily": "lucide",
+                  "fill": "#D95F28"
+                },
+                {
+                  "type": "text",
+                  "id": "SZzC1",
+                  "name": "feat2TitleB",
+                  "fill": "#1C1208",
+                  "content": "Works Everywhere",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "DBUw1",
+                  "name": "feat2SubB",
+                  "fill": "#7A5C3A",
+                  "textGrowth": "fixed-width",
+                  "width": 212,
+                  "content": "Any app — Notion, Slack, email, code editors.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YkCOk",
+              "name": "feat3B",
+              "width": 260,
+              "fill": "#F0EBE3",
+              "cornerRadius": 16,
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "DH5I3",
+                  "name": "feat3IconB",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "tag",
+                  "iconFontFamily": "lucide",
+                  "fill": "#D95F28"
+                },
+                {
+                  "type": "text",
+                  "id": "voIE6",
+                  "name": "feat3TitleB",
+                  "fill": "#1C1208",
+                  "content": "Buy Once, Own It",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "O5wFD",
+                  "name": "feat3SubB",
+                  "fill": "#7A5C3A",
+                  "textGrowth": "fixed-width",
+                  "width": 212,
+                  "content": "$49 forever. No monthly fees, no surprises.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "HBaXW",
+      "x": 3000,
+      "y": 700,
+      "name": "Option C — Dark Premium",
+      "width": 1440,
+      "height": 960,
+      "fill": "#2c2b29",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "yS714",
+          "x": 0,
+          "y": 0,
+          "name": "Nav",
+          "width": 1440,
+          "height": 72,
+          "fill": "#00000000",
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "89PPI",
+              "name": "logoC",
+              "fill": "#fbfbfb",
+              "content": "SnackVoice",
+              "fontFamily": "Inter",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "ACw0m",
+              "name": "navLinksC",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gLyZy",
+                  "name": "navLink1C",
+                  "fill": "#6a6580",
+                  "content": "Features",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "vMhSG",
+                  "name": "navLink2C",
+                  "fill": "#6a6580",
+                  "content": "Pricing",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "7nmtn",
+                  "name": "navBtnC",
+                  "fill": "#00000000",
+                  "cornerRadius": 6,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#3d3b5a"
+                  },
+                  "padding": [
+                    9,
+                    20
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RLSAD",
+                      "name": "navBtnTxtC",
+                      "fill": "#FFFFFF",
+                      "content": "Get for $49",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ibFqp",
+          "x": 0,
+          "y": 0,
+          "name": "HeroBg",
+          "width": 1440,
+          "height": 960,
+          "fill": {
+            "type": "gradient",
+            "gradientType": "radial",
+            "enabled": true,
+            "rotation": 0,
+            "size": {
+              "width": 0.7,
+              "height": 0.6
+            },
+            "colors": [
+              {
+                "color": "#3a3260",
+                "position": 0
+              },
+              {
+                "color": "#2c2b29",
+                "position": 1
+              }
+            ],
+            "center": {
+              "x": 0.25,
+              "y": 0.45
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "2Y0w1",
+          "x": 0,
+          "y": 0,
+          "name": "Hero",
+          "width": 1440,
+          "height": 700,
+          "layout": "vertical",
+          "gap": 28,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "hDRoZ",
+              "name": "eyebrowC",
+              "fill": "#1e1d2e",
+              "cornerRadius": 50,
+              "gap": 8,
+              "padding": [
+                6,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "qVyyw",
+                  "name": "eyebrowDotC",
+                  "fill": "#7c6feb",
+                  "width": 6,
+                  "height": 6
+                },
+                {
+                  "type": "text",
+                  "id": "GBZVl",
+                  "name": "eyebrowTxtC",
+                  "fill": "#9b90f0",
+                  "content": "Local · Private · Fast",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600",
+                  "letterSpacing": 1
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "fHrof",
+              "name": "headlineC",
+              "fill": "#fbfbfb",
+              "textGrowth": "fixed-width",
+              "width": 900,
+              "content": "Speech to text.\nNo cloud.\nNo subscription.",
+              "lineHeight": 1.08,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 80,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "wYq75",
+              "name": "subC",
+              "fill": "#9490a0",
+              "textGrowth": "fixed-width",
+              "width": 560,
+              "content": "SnackVoice transcribes your voice locally on your Mac.\nPrivate by design. Buy once, own it forever.",
+              "lineHeight": 1.65,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Do9Tk",
+              "name": "ctaRowC",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "6HntS",
+                  "name": "ctaBtnC",
+                  "fill": "#7c6feb",
+                  "cornerRadius": 8,
+                  "padding": [
+                    18,
+                    36
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vpRWA",
+                      "name": "ctaBtnTxtC",
+                      "fill": "#ffffff",
+                      "content": "Get SnackVoice — $49",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "jkxiO",
+                  "name": "ctaSubC",
+                  "fill": "#6a6580",
+                  "content": "One-time. No subscription.",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "5VvoV",
+          "x": 120,
+          "y": 780,
+          "name": "Features",
+          "width": 1200,
+          "gap": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "8TaaK",
+              "name": "feat1C",
+              "width": 260,
+              "fill": "#302f2d",
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#3d3c3a"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "fWu7d",
+                  "name": "feat1IconC",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "shield",
+                  "iconFontFamily": "lucide",
+                  "fill": "#9b90f0"
+                },
+                {
+                  "type": "text",
+                  "id": "43bWQ",
+                  "name": "feat1TitleC",
+                  "fill": "#fbfbfb",
+                  "content": "100% Private",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "rtwEP",
+                  "name": "feat1SubC",
+                  "fill": "#7a7890",
+                  "textGrowth": "fixed-width",
+                  "width": 212,
+                  "content": "Zero data leaves your Mac. Ever.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SbSNf",
+              "name": "feat2C",
+              "width": 260,
+              "fill": "#302f2d",
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#3d3c3a"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "EuJRC",
+                  "name": "feat2IconC",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "zap",
+                  "iconFontFamily": "lucide",
+                  "fill": "#9b90f0"
+                },
+                {
+                  "type": "text",
+                  "id": "0BltU",
+                  "name": "feat2TitleC",
+                  "fill": "#fbfbfb",
+                  "content": "Works Everywhere",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "zrWzW",
+                  "name": "feat2SubC",
+                  "fill": "#7a7890",
+                  "textGrowth": "fixed-width",
+                  "width": 212,
+                  "content": "Types into any app on your Mac.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gzpyn",
+              "name": "feat3C",
+              "width": 260,
+              "fill": "#302f2d",
+              "cornerRadius": 12,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#3d3c3a"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "ZJJFO",
+                  "name": "feat3IconC",
+                  "width": 20,
+                  "height": 20,
+                  "iconFontName": "infinity",
+                  "iconFontFamily": "lucide",
+                  "fill": "#9b90f0"
+                },
+                {
+                  "type": "text",
+                  "id": "8EPiv",
+                  "name": "feat3TitleC",
+                  "fill": "#fbfbfb",
+                  "content": "Buy Once, Own It",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "iYXsT",
+                  "name": "feat3SubC",
+                  "fill": "#7a7890",
+                  "textGrowth": "fixed-width",
+                  "width": 212,
+                  "content": "$49, forever. No monthly fees.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
