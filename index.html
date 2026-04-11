@@ -4,153 +4,274 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SnackVoice — Speech to Text for Mac</title>
-  <meta name="description" content="Local, private speech-to-text for Mac. No cloud. No subscription. $49, yours forever." />
+  <meta
+    name="description"
+    content="Private speech-to-text for Mac that works locally, types into any app, and ships with a one-time license."
+  />
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
-
-<!-- NAV -->
-<nav>
-  <div class="nav-inner">
-    <a class="nav-logo" href="/">SnackVoice</a>
-    <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#how-it-works">How it works</a>
-      <a href="#pricing">Pricing</a>
-      <button class="btn btn-primary btn-sm" id="nav-cta">Get for $49</button>
-    </div>
-  </div>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-glow"></div>
-  <div class="container">
-    <div class="hero-eyebrow">
-      <span class="hero-eyebrow-dot"></span>
-      Local · Private · Fast
-    </div>
-    <h1>Speech to text.<br>No cloud.<br>No subscription.</h1>
-    <p class="hero-sub">
-      SnackVoice transcribes your voice locally on your Mac.
-      Private by design. Buy once, own it forever.
-    </p>
-    <div class="hero-cta-row">
-      <button class="btn btn-primary" id="hero-cta">
-        Get SnackVoice — $49
-      </button>
-      <span class="hero-cta-note">One-time purchase · Mac only · Instant delivery</span>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
-<section class="features" id="features">
-  <div class="container">
-    <div class="section-label">Why SnackVoice</div>
-    <div class="section-title">Built for people who talk<br>faster than they type.</div>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <div class="feature-title">100% Private</div>
-        <div class="feature-desc">Runs entirely on your Mac using local models. Zero data ever leaves your device.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <div class="feature-title">Works Everywhere</div>
-        <div class="feature-desc">Types directly into any app — Notion, Slack, email, code editors, Terminal. Anywhere you can type.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🎯</div>
-        <div class="feature-title">Accurate & Fast</div>
-        <div class="feature-desc">Powered by best-in-class local transcription. Near real-time, even on older Macs.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📦</div>
-        <div class="feature-title">Buy Once, Own It</div>
-        <div class="feature-desc">$49 one-time. No monthly subscription, no usage limits, no price hikes.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔌</div>
-        <div class="feature-title">Works Offline</div>
-        <div class="feature-desc">No internet connection required. Works on planes, trains, and coffee shops with bad Wi-Fi.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🍎</div>
-        <div class="feature-title">Native Mac App</div>
-        <div class="feature-desc">Built with Tauri for tight macOS integration. Lives in your menu bar, out of the way.</div>
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="/">SnackVoice</a>
+      <div class="nav-links">
+        <a href="#proof">Proof</a>
+        <a href="#features">Features</a>
+        <a href="#faq">FAQ</a>
+        <button class="btn btn-primary btn-sm" id="nav-cta">Get for $49</button>
       </div>
     </div>
-  </div>
-</section>
+  </nav>
 
-<!-- HOW IT WORKS -->
-<section class="how" id="how-it-works">
-  <div class="container">
-    <div class="section-label">How it works</div>
-    <div class="section-title">Up and running<br>in minutes.</div>
-    <div class="how-steps">
-      <div class="how-step">
-        <div class="step-num">01</div>
-        <div class="step-title">Buy & download</div>
-        <div class="step-desc">Pay once. You'll get an email with your download link and license key immediately.</div>
+  <main>
+    <section class="hero">
+      <div class="hero-noise"></div>
+      <div class="hero-orbit hero-orbit-a"></div>
+      <div class="hero-orbit hero-orbit-b"></div>
+      <div class="hero-grid">
+        <div class="hero-copy reveal reveal-up">
+          <div class="hero-eyebrow">
+            <span class="hero-eyebrow-dot"></span>
+            Private dictation for Mac
+          </div>
+          <div class="hero-brand">SnackVoice</div>
+          <h1>Talk once.<br />Text appears everywhere.</h1>
+          <p class="hero-sub">
+            SnackVoice transcribes locally on your Mac, drops clean text into any app,
+            and keeps your voice off someone else’s server.
+          </p>
+          <div class="hero-cta-row">
+            <button class="btn btn-primary" id="hero-cta">Get SnackVoice — $49</button>
+            <a class="btn btn-secondary" href="#proof">See how it works</a>
+          </div>
+          <div class="hero-cta-note">One-time purchase · macOS app · instant delivery</div>
+        </div>
+
+        <div class="hero-visual reveal reveal-up" aria-label="SnackVoice demo preview">
+          <div class="visual-shell">
+            <div class="visual-topbar">
+              <div class="visual-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div class="visual-title">Live transcription</div>
+            </div>
+            <div class="visual-body">
+              <div class="voice-meter" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span>
+              </div>
+              <div class="transcript-panel">
+                <div class="transcript-kicker">Speaking into SnackVoice</div>
+                <p class="transcript-line transcript-line-active" data-transcript-line>
+                  Draft the launch note, keep the tone direct, and mention that everything stays on-device.
+                </p>
+                <p class="transcript-line" data-transcript-line>
+                  Open Notion, drop the recap in, then send the follow-up without switching back to the mouse.
+                </p>
+                <p class="transcript-line" data-transcript-line>
+                  Hold the shortcut, speak naturally, release, and the cursor gets the text immediately.
+                </p>
+              </div>
+              <div class="visual-footer">
+                <div class="mini-proof">
+                  <span class="mini-proof-label">Latency</span>
+                  <strong>Near real-time</strong>
+                </div>
+                <div class="mini-proof">
+                  <span class="mini-proof-label">Privacy</span>
+                  <strong>Local only</strong>
+                </div>
+                <div class="mini-proof">
+                  <span class="mini-proof-label">License</span>
+                  <strong>Buy once</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="how-step">
-        <div class="step-num">02</div>
-        <div class="step-title">Activate</div>
-        <div class="step-desc">Open SnackVoice, paste your license key. That's it — no account, no sign-in.</div>
+    </section>
+
+    <section class="proof section" id="proof">
+      <div class="section-shell proof-shell reveal reveal-up">
+        <div>
+          <div class="section-label">Proof</div>
+          <h2 class="section-title">Built for the exact moment typing becomes the bottleneck.</h2>
+        </div>
+        <div class="proof-copy">
+          <p>
+            You hold a shortcut, speak, release, and SnackVoice types into the app you were
+            already using. No browser tab. No cloud transcript queue. No monthly plan hovering in the background.
+          </p>
+          <ul class="proof-list">
+            <li>Works in editors, chat apps, docs, email, and Terminal.</li>
+            <li>Local transcription keeps private notes, code, and client work on-device.</li>
+            <li>Menu bar footprint means it stays nearby without taking over your desktop.</li>
+          </ul>
+        </div>
       </div>
-      <div class="how-step">
-        <div class="step-num">03</div>
-        <div class="step-title">Start speaking</div>
-        <div class="step-desc">Hold the shortcut, speak, release. Your words appear wherever your cursor is.</div>
+    </section>
+
+    <section class="workflow section" id="how-it-works">
+      <div class="section-shell workflow-shell">
+        <div class="workflow-sticky reveal reveal-up">
+          <div class="section-label">Workflow</div>
+          <h2 class="section-title">A faster loop from thought to text.</h2>
+          <p class="section-body">
+            The point is not novelty. The point is reducing friction when you already know what you want to say.
+          </p>
+        </div>
+        <div class="workflow-steps">
+          <article class="how-step reveal reveal-up">
+            <div class="step-num">01</div>
+            <div class="step-title">Buy & download</div>
+            <div class="step-desc">Pay once and get the app download plus your license key by email right away.</div>
+          </article>
+          <article class="how-step reveal reveal-up">
+            <div class="step-num">02</div>
+            <div class="step-title">Activate</div>
+            <div class="step-desc">Open SnackVoice, paste the key, and give it the usual macOS permissions once.</div>
+          </article>
+          <article class="how-step reveal reveal-up">
+            <div class="step-num">03</div>
+            <div class="step-title">Start speaking</div>
+            <div class="step-desc">Hold the shortcut, talk naturally, release, and let the cursor receive the text.</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="features section" id="features">
+      <div class="section-shell">
+        <div class="section-heading reveal reveal-up">
+          <div class="section-label">Why it holds up</div>
+          <h2 class="section-title">Quiet utility instead of another noisy AI product.</h2>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card reveal reveal-up">
+            <div class="feature-icon">01</div>
+            <div class="feature-title">100% private</div>
+            <div class="feature-desc">Your voice stays on your machine. Sensitive notes and drafts do not need an external transcription service.</div>
+          </div>
+          <div class="feature-card reveal reveal-up">
+            <div class="feature-icon">02</div>
+            <div class="feature-title">Works everywhere</div>
+            <div class="feature-desc">Use it in Notion, Slack, Gmail, Cursor, Apple Notes, or anywhere the cursor can accept text.</div>
+          </div>
+          <div class="feature-card reveal reveal-up">
+            <div class="feature-icon">03</div>
+            <div class="feature-title">Fast enough to stay in flow</div>
+            <div class="feature-desc">The interaction is tuned for short turns so you can keep writing, editing, and shipping.</div>
+          </div>
+          <div class="feature-card reveal reveal-up">
+            <div class="feature-icon">04</div>
+            <div class="feature-title">No subscription creep</div>
+            <div class="feature-desc">$49 once. No seat math, no token counter, and no future downgrade when you stop paying monthly.</div>
+          </div>
+          <div class="feature-card reveal reveal-up">
+            <div class="feature-icon">05</div>
+            <div class="feature-title">Offline-friendly</div>
+            <div class="feature-desc">Bad Wi-Fi should not decide whether you can capture a thought before it disappears.</div>
+          </div>
+          <div class="feature-card reveal reveal-up">
+            <div class="feature-icon">06</div>
+            <div class="feature-title">Native Mac footprint</div>
+            <div class="feature-desc">Menu bar app, normal macOS permissions, and a setup flow that stays familiar instead of browser-first.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust section">
+      <div class="section-shell trust-shell reveal reveal-up">
+        <div class="trust-panel">
+          <div class="section-label">What you get</div>
+          <h2 class="section-title">Simple purchase. Predictable ownership.</h2>
+          <ul class="trust-list">
+            <li>Full SnackVoice Mac app</li>
+            <li>License key delivered by email</li>
+            <li>All future updates included</li>
+            <li>Support at <a href="mailto:support@snackvoice.app">support@snackvoice.app</a></li>
+          </ul>
+        </div>
+
+        <div class="pricing-card featured reveal reveal-up" id="pricing">
+          <div class="price-badge">ONE-TIME PURCHASE</div>
+          <div class="price-amount"><sup>$</sup>49</div>
+          <div class="price-once">Pay once. Use forever.</div>
+          <ul class="price-features">
+            <li>Full SnackVoice app for Mac</li>
+            <li>Instant license delivery</li>
+            <li>Local transcription with no cloud account</li>
+            <li>Works in any text field on your Mac</li>
+            <li>No subscription, ever</li>
+            <li>Future updates included</li>
+          </ul>
+          <button class="btn btn-primary pricing-button" id="pricing-cta">Get SnackVoice — $49</button>
+          <p class="pricing-note">Secure checkout via Stripe · contact support if delivery ever misfires</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq section" id="faq">
+      <div class="section-shell faq-shell">
+        <div class="section-heading reveal reveal-up">
+          <div class="section-label">FAQ</div>
+          <h2 class="section-title">The practical questions.</h2>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item reveal reveal-up" open>
+            <summary>Does it send my audio to the cloud?</summary>
+            <p>No. The product promise here is local-first dictation on your Mac.</p>
+          </details>
+          <details class="faq-item reveal reveal-up">
+            <summary>Do I need an account?</summary>
+            <p>No account is required. Purchase, receive your license key, activate the app, and use it.</p>
+          </details>
+          <details class="faq-item reveal reveal-up">
+            <summary>What happens after I pay?</summary>
+            <p>You land on the success page and receive an email with the download link and license key. If that email does not arrive, support can sort it out manually.</p>
+          </details>
+          <details class="faq-item reveal reveal-up">
+            <summary>Why a one-time price instead of a subscription?</summary>
+            <p>Because this is positioned as a durable Mac utility, not a metered service that gets more expensive as it becomes useful.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta section">
+      <div class="section-shell final-cta-shell reveal reveal-up">
+        <div class="final-cta-copy">
+          <div class="section-label">Ready</div>
+          <h2 class="section-title">If you already think in spoken drafts, this should be on your Mac.</h2>
+        </div>
+        <div class="final-cta-actions">
+          <button class="btn btn-primary" id="bottom-cta">Get SnackVoice — $49</button>
+          <p>One-time purchase. Private by default. Built for everyday writing.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span class="logo">SnackVoice</span>
+      <p>© 2026 SnackVoice. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="mailto:support@snackvoice.app">Support</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
       </div>
     </div>
-  </div>
-</section>
+  </footer>
 
-<!-- PRICING -->
-<section class="pricing" id="pricing">
-  <div class="container">
-    <div class="section-label" style="text-align:center">Pricing</div>
-    <div class="section-title" style="text-align:center">Simple pricing.<br>No surprises.</div>
-    <div class="pricing-card featured">
-      <div class="price-badge">ONE-TIME PURCHASE</div>
-      <div class="price-amount"><sup>$</sup>49</div>
-      <div class="price-once">Pay once. Use forever.</div>
-      <ul class="price-features">
-        <li>Full SnackVoice app for Mac</li>
-        <li>All future updates included</li>
-        <li>Local transcription — no cloud</li>
-        <li>Works in any app on your Mac</li>
-        <li>No subscription, ever</li>
-        <li>License key — no account needed</li>
-      </ul>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" id="pricing-cta">
-        Get SnackVoice — $49
-      </button>
-      <p style="font-size:12px;color:var(--text-subtle);margin-top:12px">
-        Secure checkout via Stripe · Instant delivery
-      </p>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <span class="logo">SnackVoice</span>
-    <p>© 2025 SnackVoice. All rights reserved.</p>
-    <div style="display:flex;gap:20px">
-      <a href="mailto:support@snackvoice.app">Support</a>
-      <a href="/privacy.html">Privacy</a>
-      <a href="/terms.html">Terms</a>
-    </div>
-  </div>
-</footer>
-
-<script src="assets/main.js"></script>
+  <script src="assets/main.js"></script>
 </body>
 </html>
