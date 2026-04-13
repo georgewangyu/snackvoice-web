@@ -24,7 +24,7 @@ async function startCheckout(btn) {
     window.location.href = url;
   } catch (err) {
     console.error("Checkout error:", err);
-    alert("Something went wrong. Please try again or contact support@snackvoice.app");
+    alert("Something went wrong. Please try again or contact hellogeorgehq@gmail.com");
     setLoading(btn, false);
   }
 }

@@ -1,4 +1,10 @@
 node_modules/
 backend/.env
+backend/.env.test.local
+backend/.env.production.local
+backend/.env.live.local
 backend/data/
 *.log
+.wrangler/
+.DS_Store
+.vercel

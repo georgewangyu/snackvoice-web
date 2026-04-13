@@ -6,52 +6,93 @@
   <title>You're in — SnackVoice</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
 <main class="success-page">
   <div class="success-icon">🎉</div>
   <h1>You're all set!</h1>
-  <p>
-    Your purchase is confirmed. Check your email — your download link
-    and license key are on their way. It usually takes less than a minute.
+  <p id="success-copy">
+    Your purchase is confirmed. We are preparing your secure download link now.
   </p>
 
-  <div class="success-steps">
-    <div class="success-step">
-      <div class="success-step-num">1</div>
-      <div class="success-step-body">
-        <strong>Check your email</strong>
-        <span>You'll receive a link to download SnackVoice and your unique license key.</span>
-      </div>
-    </div>
-    <div class="success-step">
-      <div class="success-step-num">2</div>
-      <div class="success-step-body">
-        <strong>Download & open</strong>
-        <span>Download the .dmg, open it, and drag SnackVoice to your Applications folder.</span>
-      </div>
-    </div>
-    <div class="success-step">
-      <div class="success-step-num">3</div>
-      <div class="success-step-body">
-        <strong>Enter your license key</strong>
-        <span>Open SnackVoice. On first launch it will ask for your license key. Paste it in — done.</span>
-      </div>
-    </div>
-    <div class="success-step">
-      <div class="success-step-num">4</div>
-      <div class="success-step-body">
-        <strong>Start speaking</strong>
-        <span>Hold your shortcut, speak, release. Your words appear wherever your cursor is.</span>
-      </div>
+  <div class="success-panel is-hidden" id="download-panel">
+    <div class="success-panel-label">Download</div>
+    <div class="success-panel-body">Choose the version that matches your Mac.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+      <a class="btn btn-primary" id="download-link-arm64" href="#" rel="noopener noreferrer">Download for Apple Silicon</a>
+      <a class="btn btn-secondary" id="download-link-x64" href="#" rel="noopener noreferrer">Download for Intel Mac</a>
     </div>
   </div>
 
+  <div class="success-panel" id="order-panel">
+    <div class="success-panel-label">Order status</div>
+    <div class="success-panel-body" id="order-status">Waiting for fulfillment details…</div>
+  </div>
+
   <p style="margin-top:40px;font-size:13px">
-    Didn't get the email? Check your spam folder or
-    <a href="mailto:support@snackvoice.app" style="color:var(--accent-light)">contact support</a>.
+    If the download link does not appear, refresh this page or
+    <a href="mailto:hellogeorgehq@gmail.com" style="color:var(--accent)">contact support</a>.
   </p>
 </main>
+
+<script>
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    const statusEl = document.getElementById("order-status");
+    const copyEl = document.getElementById("success-copy");
+    const downloadPanel = document.getElementById("download-panel");
+    const downloadLinkArm64 = document.getElementById("download-link-arm64");
+    const downloadLinkX64 = document.getElementById("download-link-x64");
+
+    if (!sessionId) {
+      statusEl.textContent = "This page needs a Checkout session ID to load your order details.";
+      return;
+    }
+
+    async function loadOrder() {
+      try {
+        const res = await fetch(`/api/order-status?session_id=${encodeURIComponent(sessionId)}`);
+        if (!res.ok) throw new Error("Order details not ready yet");
+        const { order } = await res.json();
+
+        if (order.fulfillmentStatus === "fulfilled") {
+          copyEl.textContent = "Your purchase is confirmed. Choose the download that matches your Mac below.";
+          statusEl.textContent = "Fulfillment complete.";
+          const appleSiliconUrl = order.downloadUrls && order.downloadUrls.appleSilicon;
+          const intelUrl = order.downloadUrls && order.downloadUrls.intel;
+          if (appleSiliconUrl || intelUrl) {
+            if (appleSiliconUrl) {
+              downloadLinkArm64.href = appleSiliconUrl;
+            } else {
+              downloadLinkArm64.style.display = "none";
+            }
+            if (intelUrl) {
+              downloadLinkX64.href = intelUrl;
+            } else {
+              downloadLinkX64.style.display = "none";
+            }
+            downloadPanel.classList.remove("is-hidden");
+          }
+          return;
+        }
+
+        if (order.fulfillmentStatus === "failed") {
+          copyEl.textContent = "Your payment went through, but fulfillment needs manual help.";
+          statusEl.textContent = "Payment succeeded, but the download step did not finish automatically. Contact support and include your purchase email.";
+          return;
+        }
+
+        statusEl.textContent = "Payment confirmed. Fulfillment is still processing. Refresh in a moment if details don’t appear yet.";
+      } catch (err) {
+        statusEl.textContent = "We could not load the order details yet. Refresh in a moment or contact support if this keeps happening.";
+      }
+    }
+
+    loadOrder();
+  })();
+</script>
 </body>
 </html>

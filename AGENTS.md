@@ -5,10 +5,8 @@ Landing page and purchase flow for SnackVoice (Mac speech-to-text app).
 ## Stack
 
 - **Frontend**: Vanilla HTML/CSS/JS, no framework
-- **Backend**: Node.js, no dependencies except `nodemailer` (optional)
+- **Backend**: Node.js
 - **Payments**: Stripe Checkout (hosted, one-time payment)
-- **Licensing**: Keygen.sh (license key generation + validation)
-- **Email**: SMTP via nodemailer (Resend recommended)
 - **QA**: Puppeteer (`npm run qa`)
 
 ## Dev
@@ -30,8 +28,6 @@ User clicks CTA
   → Payment succeeds
   → Stripe fires webhook to POST /api/webhook
   → Server verifies signature
-  → Creates Keygen license key
-  → Sends delivery email (download link + license key)
   → Saves order to backend/data/orders.json
   → User lands on /success.html
 ```
@@ -40,8 +36,7 @@ User clicks CTA
 
 - Host the `.dmg` on GitHub Releases
 - Set `DOWNLOAD_URL` in `.env` to the release download URL
-- After payment: server emails buyer with `DOWNLOAD_URL` + their Keygen license key
-- User downloads, drags to Applications, launches, pastes key once
+- User downloads, drags to Applications, and launches
 
 ## Key Files
 
