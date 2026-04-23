@@ -7,6 +7,9 @@
  */
 
 const puppeteer = require("puppeteer");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 
 const BASE = process.env.APP_URL || "http://localhost:4200";
 const PASS = "\x1b[32m✓\x1b[0m";
@@ -26,7 +29,20 @@ function assert(label, condition) {
 }
 
 async function run() {
-  const browser = await puppeteer.launch({ headless: "new" });
+  const chromeFromEnv = process.env.PUPPETEER_EXECUTABLE_PATH || "";
+  const chromeDefaultPath = path.join(
+    os.homedir(),
+    ".cache/puppeteer/chrome/mac-127.0.6533.88/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+  );
+  const executablePath = chromeFromEnv
+    ? chromeFromEnv
+    : fs.existsSync(chromeDefaultPath)
+      ? chromeDefaultPath
+      : undefined;
+  const browser = await puppeteer.launch({
+    headless: "new",
+    executablePath,
+  });
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 900 });
 
@@ -62,10 +78,45 @@ async function run() {
   assert("Pricing card present", !!pricingCard);
 
   const priceAmount = await page.$eval(".price-amount", (el) => el.textContent.trim());
-  assert("Price shows $49", priceAmount.includes("49"));
+  assert("Price shows monthly 14.99", priceAmount.includes("14.99"));
 
-  // ── Checkout API ──────────────────────────────────────────────────────────
-  console.log("\n[2] Checkout API");
+  // ── Plan switching ────────────────────────────────────────────────────────
+  console.log("\n[2] Plan switch");
+  await page.click('[data-plan-option="annual"]');
+  await new Promise((r) => setTimeout(r, 80));
+
+  const heroCtaAnnual = await page.$eval("#hero-cta", (el) => el.textContent.trim());
+  assert("Hero CTA updates to annual", heroCtaAnnual.includes("Annual"));
+  assert("Hero CTA annual price visible", heroCtaAnnual.includes("149.99"));
+
+  const pricingSubtitle = await page.$eval("#pricing-plan-subtitle", (el) =>
+    el.textContent.trim()
+  );
+  assert("Pricing subtitle updates to annual", pricingSubtitle.includes("Annual"));
+
+  // ── Auth gating + sign-in smoke ───────────────────────────────────────────
+  console.log("\n[3] Auth + Checkout gating");
+  await page.click("#hero-cta");
+  await new Promise((r) => setTimeout(r, 120));
+
+  const modalVisibleAfterCta = await page.$eval("#auth-modal", (el) => !el.hidden);
+  assert("Unauthenticated CTA opens auth modal", modalVisibleAfterCta);
+
+  const qaEmail = `qa+${Date.now()}@example.com`;
+  const qaPassword = "password123";
+  await page.type("#auth-email", qaEmail);
+  await page.type("#auth-password", qaPassword);
+  await page.click("#auth-signup-submit");
+  await new Promise((r) => setTimeout(r, 180));
+
+  const modalHiddenAfterVerify = await page.$eval("#auth-modal", (el) => el.hidden);
+  assert("Password auth closes auth modal", modalHiddenAfterVerify);
+
+  const accountSummary = await page.$eval("#account-summary", (el) => el.textContent.trim());
+  assert("Account panel updates after sign-in", !accountSummary.includes("Sign in required"));
+
+  // ── Checkout API payload shape ────────────────────────────────────────────
+  console.log("\n[4] Checkout API shape");
   const apiRes = await page.evaluate(async (base) => {
     try {
       const r = await fetch(`${base}/api/create-checkout`, { method: "POST" });
@@ -74,46 +125,28 @@ async function run() {
       return { error: e.message };
     }
   }, BASE);
-
-  assert("POST /api/create-checkout returns 200", apiRes.status === 200);
-  assert("Response has url field", typeof apiRes.body?.url === "string");
-
-  // ── CTA click → loading state ─────────────────────────────────────────────
-  console.log("\n[3] CTA interactions");
-  await page.goto(BASE, { waitUntil: "networkidle0" });
-
-  // Intercept fetch so we can test loading state without actually redirecting
-  await page.setRequestInterception(true);
-  page.once("request", (req) => {
-    if (req.url().includes("/api/create-checkout")) {
-      // Hold response briefly so we can observe the loading state
-      setTimeout(() => req.respond({ status: 200, contentType: "application/json", body: JSON.stringify({ url: "#" }) }), 500);
-    } else {
-      req.continue();
-    }
-  });
-
-  await page.click("#hero-cta");
-  await new Promise((r) => setTimeout(r, 80));
-  const btnText = await page.$eval("#hero-cta", (el) => el.textContent.trim());
-  assert("CTA shows loading state on click", btnText === "Loading…");
-
-  // Wait for interception to complete, then disable
-  await new Promise((r) => setTimeout(r, 600));
-  await page.setRequestInterception(false);
+  assert(
+    "POST /api/create-checkout returns known status",
+    apiRes.status === 200 || apiRes.status === 400 || apiRes.status === 401
+  );
+  const checkoutHasExpectedPayload =
+    (apiRes.status === 200 && typeof apiRes.body?.url === "string") ||
+    ((apiRes.status === 400 || apiRes.status === 401) &&
+      typeof apiRes.body?.error === "string");
+  assert("Checkout API returns url or structured error", checkoutHasExpectedPayload);
 
   // ── Success page ──────────────────────────────────────────────────────────
-  console.log("\n[4] Success page");
+  console.log("\n[5] Success page");
   await page.goto(`${BASE}/success.html`, { waitUntil: "networkidle0" });
 
   const successH1 = await page.$eval("h1", (el) => el.textContent.trim());
   assert("Success page h1 present", successH1.length > 0);
 
-  const successSteps = await page.$$(".success-step");
-  assert("4 success steps shown", successSteps.length === 4);
+  const orderPanel = await page.$("#order-panel");
+  assert("Order status panel shown", !!orderPanel);
 
   // ── Responsive (mobile) ───────────────────────────────────────────────────
-  console.log("\n[5] Mobile viewport");
+  console.log("\n[6] Mobile viewport");
   await page.setViewport({ width: 375, height: 812 });
   await page.goto(BASE, { waitUntil: "networkidle0" });
 

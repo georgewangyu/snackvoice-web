@@ -6,7 +6,7 @@
   <title>SnackVoice — Speech to Text for Mac</title>
   <meta
     name="description"
-    content="Private speech-to-text for Mac that works locally, types into any app, and is available as a one-time purchase."
+    content="Private speech-to-text for Mac with a free weekly tier, monthly or annual plans, and local-first transcription."
   />
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,7 +21,8 @@
         <a href="#proof">Proof</a>
         <a href="#features">Features</a>
         <a href="#faq">FAQ</a>
-        <button class="btn btn-primary btn-sm" id="nav-cta">Get for $49</button>
+        <button class="btn btn-secondary btn-sm" id="nav-account-btn">Sign in</button>
+        <button class="btn btn-primary btn-sm" id="nav-cta">Start Monthly</button>
       </div>
     </div>
   </nav>
@@ -43,11 +44,15 @@
             SnackVoice transcribes locally on your Mac, drops clean text into any app,
             and keeps your voice off someone else’s server.
           </p>
+          <div class="plan-switch" role="tablist" aria-label="Billing plan">
+            <button class="plan-switch-btn" data-plan-option="monthly" role="tab" aria-selected="true">Monthly</button>
+            <button class="plan-switch-btn" data-plan-option="annual" role="tab" aria-selected="false">Annual</button>
+          </div>
           <div class="hero-cta-row">
-            <button class="btn btn-primary" id="hero-cta">Get SnackVoice — $49</button>
+            <button class="btn btn-primary" id="hero-cta">Start Monthly — $14.99</button>
             <a class="btn btn-secondary" href="#proof">See how it works</a>
           </div>
-          <div class="hero-cta-note">One-time purchase · macOS app · instant delivery</div>
+          <div class="hero-cta-note">Free tier: 1,000 words/week · Paid plans unlock unlimited words</div>
         </div>
 
         <div class="hero-visual reveal reveal-up" aria-label="SnackVoice demo preview">
@@ -89,7 +94,7 @@
                 </div>
                 <div class="mini-proof">
                   <span class="mini-proof-label">License</span>
-                  <strong>Buy once</strong>
+                  <strong>Free + Paid</strong>
                 </div>
               </div>
             </div>
@@ -107,7 +112,7 @@
         <div class="proof-copy">
           <p>
             You hold a shortcut, speak, release, and SnackVoice types into the app you were
-            already using. No browser tab. No cloud transcript queue. No monthly plan hovering in the background.
+            already using. No browser tab and no cloud transcript queue in the critical path.
           </p>
           <ul class="proof-list">
             <li>Works in editors, chat apps, docs, email, and Terminal.</li>
@@ -130,13 +135,13 @@
         <div class="workflow-steps">
           <article class="how-step reveal reveal-up">
             <div class="step-num">01</div>
-            <div class="step-title">Buy & download</div>
-            <div class="step-desc">Pay once and get the app download right away.</div>
+            <div class="step-title">Start free or paid</div>
+            <div class="step-desc">Choose monthly, annual, or begin with the free 1,000 words/week tier.</div>
           </article>
           <article class="how-step reveal reveal-up">
             <div class="step-num">02</div>
             <div class="step-title">Activate</div>
-            <div class="step-desc">Open SnackVoice, paste the key, and give it the usual macOS permissions once.</div>
+            <div class="step-desc">Sign in with your email once and grant the usual macOS permissions.</div>
           </article>
           <article class="how-step reveal reveal-up">
             <div class="step-num">03</div>
@@ -171,8 +176,8 @@
           </div>
           <div class="feature-card reveal reveal-up">
             <div class="feature-icon">04</div>
-            <div class="feature-title">No subscription creep</div>
-            <div class="feature-desc">$49 once. No seat math, no token counter, and no future downgrade when you stop paying monthly.</div>
+            <div class="feature-title">Predictable usage model</div>
+            <div class="feature-desc">Free weekly word budget for light use, unlimited words for active subscribers.</div>
           </div>
           <div class="feature-card reveal reveal-up">
             <div class="feature-icon">05</div>
@@ -195,26 +200,39 @@
           <h2 class="section-title">Simple purchase. Predictable ownership.</h2>
           <ul class="trust-list">
             <li>Full SnackVoice Mac app</li>
-            <li>Secure download available right after purchase</li>
-            <li>All future updates included</li>
+            <li>Secure download available right after checkout</li>
+            <li>S3-backed release sync keeps web download up to date</li>
             <li>Support at <a href="mailto:hellogeorgehq@gmail.com">hellogeorgehq@gmail.com</a></li>
           </ul>
         </div>
 
         <div class="pricing-card featured reveal reveal-up" id="pricing">
-          <div class="price-badge">ONE-TIME PURCHASE</div>
-          <div class="price-amount"><sup>$</sup>49</div>
-          <div class="price-once">Pay once. Use forever.</div>
+          <div class="price-badge">SUBSCRIPTION PLANS</div>
+          <div class="price-amount"><sup>$</sup>14.99</div>
+          <div class="price-once" id="pricing-plan-subtitle">Monthly · Unlimited words</div>
+          <div class="plan-switch plan-switch-compact" role="tablist" aria-label="Billing plan">
+            <button class="plan-switch-btn" data-plan-option="monthly" role="tab" aria-selected="true">Monthly</button>
+            <button class="plan-switch-btn" data-plan-option="annual" role="tab" aria-selected="false">Annual</button>
+          </div>
           <ul class="price-features">
             <li>Full SnackVoice app for Mac</li>
             <li>Instant download access</li>
-            <li>Local transcription with no cloud account</li>
+            <li>Local transcription with account-based entitlement</li>
             <li>Works in any text field on your Mac</li>
-            <li>No subscription, ever</li>
-            <li>Future updates included</li>
+            <li>Free tier available: 1,000 words per week</li>
+            <li>Annual option: $149.99/year</li>
           </ul>
-          <button class="btn btn-primary pricing-button" id="pricing-cta">Get SnackVoice — $49</button>
-          <p class="pricing-note">Secure checkout via Stripe · contact support if delivery ever misfires</p>
+          <button class="btn btn-primary pricing-button" id="pricing-cta">Start Monthly — $14.99</button>
+          <div class="account-panel" id="account-panel">
+            <p class="account-title" id="account-summary">Sign in required before checkout.</p>
+            <p class="account-meta" id="account-meta">Use one email account across devices to keep usage and subscription status in sync.</p>
+            <div class="account-actions">
+              <button class="btn btn-secondary btn-sm" id="account-signin-btn">Sign in</button>
+              <button class="btn btn-secondary btn-sm" id="account-manage-btn" hidden>Manage plan</button>
+              <button class="btn btn-ghost btn-sm" id="account-signout-btn" hidden>Sign out</button>
+            </div>
+          </div>
+          <p class="pricing-note">Secure checkout via Stripe · one subscription per email · contact support if delivery misfires</p>
         </div>
       </div>
     </section>
@@ -232,15 +250,15 @@
           </details>
           <details class="faq-item reveal reveal-up">
             <summary>Do I need an account?</summary>
-            <p>No account is required. Purchase, download the app, and use it.</p>
+            <p>Yes. Account-based entitlements are how usage and subscriptions sync across your devices.</p>
           </details>
           <details class="faq-item reveal reveal-up">
             <summary>What happens after I pay?</summary>
             <p>You land on the success page and choose either the Apple Silicon or Intel download for your Mac. If the links do not appear right away, refresh once or contact support.</p>
           </details>
           <details class="faq-item reveal reveal-up">
-            <summary>Why a one-time price instead of a subscription?</summary>
-            <p>Because this is positioned as a durable Mac utility, not a metered service that gets more expensive as it becomes useful.</p>
+            <summary>How does the free tier work?</summary>
+            <p>Free accounts get 1,000 words per week. When you hit the limit, dictation resumes next reset window or immediately after upgrade.</p>
           </details>
         </div>
       </div>
@@ -253,8 +271,8 @@
           <h2 class="section-title">If you already think in spoken drafts, this should be on your Mac.</h2>
         </div>
         <div class="final-cta-actions">
-          <button class="btn btn-primary" id="bottom-cta">Get SnackVoice — $49</button>
-          <p>One-time purchase. Private by default. Built for everyday writing.</p>
+          <button class="btn btn-primary" id="bottom-cta">Start Monthly — $14.99</button>
+          <p>Free tier available. Private by default. Built for everyday writing.</p>
         </div>
       </div>
     </section>
@@ -271,6 +289,26 @@
       </div>
     </div>
   </footer>
+
+  <div class="auth-modal" id="auth-modal" hidden>
+    <div class="auth-backdrop" data-auth-close></div>
+    <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <button class="auth-close" id="auth-modal-close" aria-label="Close auth dialog">✕</button>
+      <h2 id="auth-title">Sign in to SnackVoice</h2>
+      <p class="auth-intro">Create an account with email and password, then use the same login across devices for billing and weekly usage.</p>
+      <form id="auth-form" class="auth-form">
+        <label for="auth-email">Email</label>
+        <input id="auth-email" type="email" required placeholder="you@example.com" autocomplete="email" />
+        <label for="auth-password">Password</label>
+        <input id="auth-password" type="password" required placeholder="At least 8 characters" autocomplete="current-password" minlength="8" />
+        <div class="auth-actions">
+          <button class="btn btn-primary" id="auth-signin-submit" type="submit" data-auth-mode="signin">Sign in</button>
+          <button class="btn btn-secondary" id="auth-signup-submit" type="submit" data-auth-mode="signup">Create account</button>
+        </div>
+      </form>
+      <p class="auth-status" id="auth-email-status"></p>
+    </div>
+  </div>
 
   <script src="assets/main.js"></script>
 </body>

@@ -1,8 +1,8 @@
 "use strict";
 
-const { handleCreateCheckout } = require("../backend/app");
+const { handleEntitlement } = require("../backend/app");
 const { withCors } = require("./_lib/with-cors");
 
 module.exports = withCors(async function handler(req, res) {
-  return handleCreateCheckout(req, res);
+  return handleEntitlement(req, res);
 });

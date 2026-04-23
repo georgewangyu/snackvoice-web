@@ -196,6 +196,19 @@ main {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.btn-ghost {
+  color: var(--text-subtle);
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  color: var(--text);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .btn-sm {
   padding: 10px 18px;
   font-size: 0.88rem;
@@ -311,6 +324,46 @@ main {
   margin: 28px 0 0;
   font-size: clamp(1.02rem, 1.5vw, 1.18rem);
   color: var(--text-muted);
+}
+
+.plan-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.plan-switch-compact {
+  margin-top: 8px;
+  margin-bottom: 18px;
+}
+
+.plan-switch-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.plan-switch-btn:hover,
+.plan-switch-btn:focus-visible {
+  color: var(--text);
+}
+
+.plan-switch-btn-active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(138, 124, 255, 0.72), rgba(111, 97, 239, 0.72));
 }
 
 .hero-cta-row {
@@ -696,6 +749,32 @@ main {
   width: 100%;
 }
 
+.account-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.account-title {
+  margin: 0 0 6px;
+  font-weight: 650;
+}
+
+.account-meta {
+  margin: 0;
+  color: var(--text-subtle);
+  font-size: 0.9rem;
+}
+
+.account-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .pricing-note {
   margin: 14px 0 0;
   font-size: 0.84rem;
@@ -799,6 +878,105 @@ footer p {
 .footer-links a:hover,
 .footer-links a:focus-visible {
   color: var(--text);
+}
+
+.auth-modal[hidden] {
+  display: none;
+}
+
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 6, 9, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.auth-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: linear-gradient(180deg, rgba(27, 24, 34, 0.98), rgba(16, 14, 20, 0.98));
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+.auth-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-subtle);
+  cursor: pointer;
+}
+
+.auth-close:hover,
+.auth-close:focus-visible {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.auth-dialog h2 {
+  margin: 0;
+  font-size: 1.42rem;
+  letter-spacing: -0.03em;
+}
+
+.auth-intro {
+  margin: 8px 0 14px;
+  color: var(--text-muted);
+}
+
+.auth-form {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-form label {
+  font-size: 0.84rem;
+  color: var(--text-subtle);
+}
+
+.auth-form input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  padding: 10px 12px;
+}
+
+.auth-form input:focus {
+  outline: 1px solid rgba(138, 124, 255, 0.65);
+  border-color: rgba(138, 124, 255, 0.65);
+}
+
+.auth-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.auth-status {
+  min-height: 20px;
+  margin: 8px 0 0;
+  color: var(--text-subtle);
+  font-size: 0.9rem;
 }
 
 .success-page {
@@ -1035,6 +1213,10 @@ footer p {
     gap: 14px;
   }
 
+  .nav-links .btn-sm {
+    white-space: nowrap;
+  }
+
   .hero {
     min-height: auto;
     padding-top: 18px;
@@ -1059,5 +1241,9 @@ footer p {
   .how-step,
   .faq-item {
     padding: 22px;
+  }
+
+  .auth-dialog {
+    padding: 18px;
   }
 }
