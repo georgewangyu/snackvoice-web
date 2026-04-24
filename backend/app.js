@@ -10,7 +10,11 @@ const {
   scryptSync,
   timingSafeEqual,
 } = require("crypto");
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const {
+  S3Client,
+  GetObjectCommand,
+  HeadObjectCommand,
+} = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const DEFAULT_ENV_PATH = path.join(__dirname, ".env");
@@ -1141,6 +1145,74 @@ async function createSignedDownloadUrl(key, filename) {
   return getSignedUrl(client, command, { expiresIn: S3_URL_TTL });
 }
 
+function sanitizeVersionLabel(value) {
+  if (!value || typeof value !== "string") return "";
+  return value.trim().replace(/^v/i, "").replace(/[^0-9A-Za-z.+_-]/g, "");
+}
+
+function parseFilenameFromContentDisposition(value) {
+  if (!value || typeof value !== "string") return "";
+  const utf8Match = value.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1]).replace(/[/\\]/g, "");
+    } catch {
+      // fall through to quoted/unquoted filename parsing
+    }
+  }
+  const quotedMatch = value.match(/filename="([^"]+)"/i);
+  if (quotedMatch?.[1]) return quotedMatch[1].replace(/[/\\]/g, "");
+  const plainMatch = value.match(/filename=([^;]+)/i);
+  if (plainMatch?.[1]) return plainMatch[1].trim().replace(/[/\\]/g, "");
+  return "";
+}
+
+function buildVersionedDmgFilename(version, archSuffix, fallbackFilename) {
+  const safeVersion = sanitizeVersionLabel(version);
+  if (!safeVersion) return fallbackFilename;
+  return `SnackVoice_${safeVersion}_${archSuffix}.dmg`;
+}
+
+async function resolveDownloadObjectInfo({ key, archSuffix, defaultFilename }) {
+  const fallback = {
+    filename: defaultFilename,
+    version: "",
+  };
+  const client = getS3Client();
+  if (!client || !key) return fallback;
+
+  try {
+    const head = await client.send(
+      new HeadObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: key,
+      })
+    );
+    const metadata = head?.Metadata || {};
+    const version = sanitizeVersionLabel(
+      metadata["snackvoice-version"] || metadata.version || ""
+    );
+    const metadataFilename = parseFilenameFromContentDisposition(
+      head?.ContentDisposition || ""
+    );
+
+    if (metadataFilename) {
+      return { filename: metadataFilename, version };
+    }
+
+    return {
+      filename: buildVersionedDmgFilename(version, archSuffix, defaultFilename),
+      version,
+    };
+  } catch (error) {
+    console.warn(
+      `[download] Failed to read S3 object metadata for ${key}:`,
+      error instanceof Error ? error.message : error
+    );
+    return fallback;
+  }
+}
+
 function getS3DownloadConfigError() {
   if (!S3_BUCKET) {
     return "Missing S3 download config: S3_BUCKET";
@@ -1160,12 +1232,26 @@ async function createDownloadLinks() {
     throw new Error(configError);
   }
 
+  const [armInfo, intelInfo] = await Promise.all([
+    resolveDownloadObjectInfo({
+      key: S3_KEY_ARM64,
+      archSuffix: "aarch64",
+      defaultFilename: "SnackVoice-Apple-Silicon.dmg",
+    }),
+    resolveDownloadObjectInfo({
+      key: S3_KEY_X64,
+      archSuffix: "x64",
+      defaultFilename: "SnackVoice-Intel.dmg",
+    }),
+  ]);
+
   return {
-    appleSilicon: await createSignedDownloadUrl(
-      S3_KEY_ARM64,
-      "SnackVoice-Apple-Silicon.dmg"
-    ),
-    intel: await createSignedDownloadUrl(S3_KEY_X64, "SnackVoice-Intel.dmg"),
+    appleSilicon: await createSignedDownloadUrl(S3_KEY_ARM64, armInfo.filename),
+    intel: await createSignedDownloadUrl(S3_KEY_X64, intelInfo.filename),
+    metadata: {
+      arm64: armInfo,
+      x64: intelInfo,
+    },
   };
 }
 
@@ -2051,6 +2137,9 @@ async function handleLatestDownload(req, res) {
   const targetUrl = preferIntel
     ? links.intel || links.appleSilicon
     : links.appleSilicon || links.intel;
+  const targetMeta = preferIntel
+    ? links.metadata?.x64 || links.metadata?.arm64
+    : links.metadata?.arm64 || links.metadata?.x64;
 
   if (!targetUrl) {
     return json(res, 503, {
@@ -2058,10 +2147,18 @@ async function handleLatestDownload(req, res) {
     });
   }
 
-  res.writeHead(302, {
+  const headers = {
     Location: targetUrl,
     "Cache-Control": "no-store",
-  });
+  };
+  if (targetMeta?.version) {
+    headers["X-SnackVoice-Version"] = targetMeta.version;
+  }
+  if (targetMeta?.filename) {
+    headers["X-SnackVoice-Filename"] = targetMeta.filename;
+  }
+
+  res.writeHead(302, headers);
   res.end();
 }
 
