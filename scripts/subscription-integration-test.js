@@ -273,6 +273,150 @@ async function run() {
       secondWebhook.json.duplicate === true
     );
 
+    console.log("\n[5] Desktop Browser Auth Handoff");
+
+    const desktopStart = await api("/api/auth/desktop/start", {
+      method: "POST",
+    });
+    check("desktop auth start returns 200", desktopStart.status === 200);
+    check(
+      "desktop auth start returns requestId and pollKey",
+      typeof desktopStart.json.requestId === "string" &&
+        desktopStart.json.requestId.length > 10 &&
+        typeof desktopStart.json.pollKey === "string" &&
+        desktopStart.json.pollKey.length > 10
+    );
+    check(
+      "desktop auth start returns browser URL",
+      typeof desktopStart.json.browserUrl === "string" &&
+        desktopStart.json.browserUrl.includes("/desktop-auth")
+    );
+
+    const desktopRequestId = desktopStart.json.requestId;
+    const desktopPollKey = desktopStart.json.pollKey;
+
+    const desktopPending = await api(
+      `/api/auth/desktop/status?requestId=${encodeURIComponent(desktopRequestId)}`
+    );
+    check("desktop auth status returns 200", desktopPending.status === 200);
+    check(
+      "desktop auth status is pending before completion",
+      desktopPending.json.status === "pending"
+    );
+
+    const desktopCompleteNoAuth = await api("/api/auth/desktop/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId: desktopRequestId }),
+    });
+    check(
+      "desktop complete without auth is rejected",
+      desktopCompleteNoAuth.status === 401
+    );
+
+    const desktopComplete = await api("/api/auth/desktop/complete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({ requestId: desktopRequestId }),
+    });
+    check("desktop complete with auth returns 200", desktopComplete.status === 200);
+    check(
+      "desktop complete marks request as ready",
+      desktopComplete.json.status === "ready"
+    );
+
+    const desktopReadyNoPollKey = await api(
+      `/api/auth/desktop/status?requestId=${encodeURIComponent(desktopRequestId)}`
+    );
+    check(
+      "desktop ready status works without pollKey",
+      desktopReadyNoPollKey.status === 200 &&
+        desktopReadyNoPollKey.json.status === "ready"
+    );
+    check(
+      "desktop ready without pollKey omits completion code",
+      typeof desktopReadyNoPollKey.json.completionCode === "undefined"
+    );
+
+    const desktopReady = await api(
+      `/api/auth/desktop/status?requestId=${encodeURIComponent(
+        desktopRequestId
+      )}&pollKey=${encodeURIComponent(desktopPollKey)}`
+    );
+    check("desktop ready status with pollKey returns 200", desktopReady.status === 200);
+    check(
+      "desktop ready status with pollKey returns completion code",
+      desktopReady.json.status === "ready" &&
+        typeof desktopReady.json.completionCode === "string" &&
+        desktopReady.json.completionCode.length > 20
+    );
+
+    const desktopExchangeWrongPoll = await api("/api/auth/desktop/exchange", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requestId: desktopRequestId,
+        pollKey: "wrong-poll-key",
+        completionCode: desktopReady.json.completionCode,
+      }),
+    });
+    check(
+      "desktop exchange with wrong poll key is rejected",
+      desktopExchangeWrongPoll.status === 401
+    );
+
+    const desktopExchange = await api("/api/auth/desktop/exchange", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requestId: desktopRequestId,
+        pollKey: desktopPollKey,
+        completionCode: desktopReady.json.completionCode,
+      }),
+    });
+    check("desktop exchange returns 200", desktopExchange.status === 200);
+    check(
+      "desktop exchange returns session token",
+      typeof desktopExchange.json.token === "string" &&
+        desktopExchange.json.token.length > 20
+    );
+
+    const desktopExchangeAgain = await api("/api/auth/desktop/exchange", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requestId: desktopRequestId,
+        pollKey: desktopPollKey,
+        completionCode: desktopReady.json.completionCode,
+      }),
+    });
+    check(
+      "desktop exchange can only be consumed once",
+      desktopExchangeAgain.status === 409
+    );
+
+    const desktopConsumed = await api(
+      `/api/auth/desktop/status?requestId=${encodeURIComponent(
+        desktopRequestId
+      )}&pollKey=${encodeURIComponent(desktopPollKey)}`
+    );
+    check(
+      "desktop status transitions to consumed after exchange",
+      desktopConsumed.status === 200 && desktopConsumed.json.status === "consumed"
+    );
+
+    const desktopSession = await api("/api/auth/session", {
+      headers: { Authorization: `Bearer ${desktopExchange.json.token}` },
+    });
+    check("desktop exchanged token can fetch auth session", desktopSession.status === 200);
+    check(
+      "desktop exchanged token is authenticated",
+      desktopSession.json.authenticated === true
+    );
+
     console.log(`\n${PASS} Subscription integration test passed`);
   } finally {
     server.kill("SIGINT");
