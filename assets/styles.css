@@ -1077,6 +1077,70 @@ footer p {
   color: var(--text);
 }
 
+.desktop-auth-page {
+  min-height: 100vh;
+}
+
+.desktop-auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+}
+
+.desktop-auth-card {
+  width: min(520px, 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(27, 24, 34, 0.98), rgba(16, 14, 20, 0.98));
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.desktop-auth-eyebrow {
+  margin: 0 0 8px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.desktop-auth-card h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4.2vw, 2.6rem);
+  letter-spacing: -0.045em;
+}
+
+.desktop-auth-subtitle {
+  margin: 0;
+  font-size: 1.26rem;
+  letter-spacing: -0.03em;
+}
+
+.desktop-auth-copy {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+}
+
+.desktop-auth-form {
+  margin-top: 14px;
+}
+
+.desktop-auth-status {
+  min-height: 20px;
+}
+
+.desktop-auth-footnote {
+  margin: 18px 0 0;
+  color: var(--text-subtle);
+  font-size: 0.9rem;
+}
+
+.desktop-auth-footnote a {
+  color: var(--accent);
+}
+
 .is-hidden {
   display: none;
 }

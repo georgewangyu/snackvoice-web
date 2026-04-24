@@ -84,6 +84,7 @@ const BILLING_PATH = process.env.BILLING_DATA_PATH
   : path.join(__dirname, "data", "billing.json");
 const MAX_STORED_WEBHOOK_EVENTS = 5000;
 const MAX_STORED_SESSIONS = 10000;
+const MAX_STORED_DESKTOP_AUTH_REQUESTS = 10000;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const storage = createStorage({
   billingPath: BILLING_PATH,
@@ -135,6 +136,12 @@ function normalizePositiveInt(value, fallbackValue) {
   return Math.floor(n);
 }
 
+function clampIntRange(value, min, max, fallbackValue) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallbackValue;
+  return Math.min(max, Math.max(min, Math.floor(n)));
+}
+
 function clampWarningDay(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return 1;
@@ -147,6 +154,21 @@ const SAFE_WEEKLY_RESET_DAY_UTC = clampWarningDay(WEEKLY_RESET_DAY_UTC);
 const SAFE_FREE_WEEKLY_WORD_QUOTA = normalizePositiveInt(FREE_WEEKLY_WORD_QUOTA, 1000);
 const SAFE_OUTAGE_GRACE_HOURS = normalizePositiveInt(OUTAGE_GRACE_HOURS, 12);
 const SAFE_SESSION_TTL_DAYS = normalizePositiveInt(SESSION_TTL_DAYS, 30);
+const DESKTOP_AUTH_REQUEST_TTL_MS = clampIntRange(
+  process.env.DESKTOP_AUTH_REQUEST_TTL_MS || 5 * 60 * 1000,
+  60 * 1000,
+  5 * 60 * 1000,
+  5 * 60 * 1000
+);
+const DESKTOP_AUTH_POLL_INTERVAL_MS = clampIntRange(
+  process.env.DESKTOP_AUTH_POLL_INTERVAL_MS || 2000,
+  500,
+  5000,
+  2000
+);
+const DESKTOP_AUTH_OPEN_APP_URL = (
+  process.env.DESKTOP_AUTH_OPEN_APP_URL || "snackvoice://"
+).trim();
 
 function getS3Client() {
   if (!HAS_S3_DOWNLOAD) return null;
@@ -171,6 +193,7 @@ function ensureBillingShape(raw) {
   if (!Array.isArray(data.checkoutSessions)) data.checkoutSessions = [];
   if (!Array.isArray(data.webhookEvents)) data.webhookEvents = [];
   if (!Array.isArray(data.sessions)) data.sessions = [];
+  if (!Array.isArray(data.desktopAuthRequests)) data.desktopAuthRequests = [];
   return data;
 }
 
@@ -434,6 +457,28 @@ function cleanupExpiredAuthRecords(billing, currentMs) {
   if (billing.sessions.length > MAX_STORED_SESSIONS) {
     billing.sessions = billing.sessions.slice(
       billing.sessions.length - MAX_STORED_SESSIONS
+    );
+  }
+
+  billing.desktopAuthRequests = billing.desktopAuthRequests.filter((row) => {
+    const expiresAtMs = parseIsoToMs(row.expiresAt);
+    const consumedAtMs = parseIsoToMs(row.consumedAt);
+    const completedAtMs = parseIsoToMs(row.completedAt);
+
+    if (consumedAtMs) {
+      return nowTimestamp - consumedAtMs <= SEVEN_DAYS_MS;
+    }
+    if (expiresAtMs && expiresAtMs <= nowTimestamp) {
+      return nowTimestamp - expiresAtMs <= SEVEN_DAYS_MS;
+    }
+    if (completedAtMs) {
+      return nowTimestamp - completedAtMs <= SEVEN_DAYS_MS;
+    }
+    return true;
+  });
+  if (billing.desktopAuthRequests.length > MAX_STORED_DESKTOP_AUTH_REQUESTS) {
+    billing.desktopAuthRequests = billing.desktopAuthRequests.slice(
+      billing.desktopAuthRequests.length - MAX_STORED_DESKTOP_AUTH_REQUESTS
     );
   }
 
@@ -832,6 +877,110 @@ function createSessionForUser(billing, user) {
   };
 }
 
+function findDesktopAuthRequest(billing, requestId) {
+  if (!requestId) return null;
+  return (
+    billing.desktopAuthRequests.find((row) => row.requestId === requestId) || null
+  );
+}
+
+function isDesktopAuthExpired(request, currentMs) {
+  if (!request) return true;
+  return parseIsoToMs(request.expiresAt) <= currentMs;
+}
+
+function isDesktopAuthConsumed(request) {
+  return !!parseIsoToMs(request?.consumedAt);
+}
+
+function hasDesktopAuthPollKey(request, pollKey) {
+  if (!request?.pollKeyHash || !pollKey) return false;
+  return safeEqualString(request.pollKeyHash, hashToken(pollKey));
+}
+
+function createDesktopAuthRequest(billing, baseUrl) {
+  const requestId = randomId("dreq");
+  const pollKey = randomBytes(18).toString("base64url");
+  const createdAt = nowIso();
+  const expiresAt = toIsoFromMs(nowMs() + DESKTOP_AUTH_REQUEST_TTL_MS);
+  const authUrl = new URL("/desktop-auth", baseUrl);
+  authUrl.searchParams.set("requestId", requestId);
+  if (DESKTOP_AUTH_OPEN_APP_URL) {
+    authUrl.searchParams.set("openAppUrl", DESKTOP_AUTH_OPEN_APP_URL);
+  }
+  billing.desktopAuthRequests.push({
+    requestId,
+    pollKeyHash: hashToken(pollKey),
+    completionNonce: "",
+    status: "pending",
+    userId: "",
+    email: "",
+    createdAt,
+    completedAt: "",
+    consumedAt: "",
+    updatedAt: createdAt,
+    expiresAt,
+  });
+  return {
+    requestId,
+    pollKey,
+    expiresAt,
+    browserUrl: authUrl.toString(),
+    pollIntervalMs: DESKTOP_AUTH_POLL_INTERVAL_MS,
+  };
+}
+
+function createDesktopCompletionCode(request) {
+  if (!request?.requestId || !request?.completionNonce) return "";
+  const expiresAtMs = parseIsoToMs(request.expiresAt);
+  if (!expiresAtMs || expiresAtMs <= nowMs()) return "";
+  return createSignedToken(
+    {
+      type: "desktop_completion",
+      requestId: request.requestId,
+      nonce: request.completionNonce,
+      exp: expiresAtMs,
+    },
+    AUTH_SECRET
+  );
+}
+
+function buildDesktopAuthStatusPayload({
+  request,
+  currentMs,
+  includeCompletionCode,
+}) {
+  if (!request) {
+    return { status: "invalid" };
+  }
+  if (isDesktopAuthConsumed(request)) {
+    return { status: "consumed", expiresAt: request.expiresAt || "" };
+  }
+  if (isDesktopAuthExpired(request, currentMs)) {
+    return { status: "expired", expiresAt: request.expiresAt || "" };
+  }
+  if (request.status === "ready" && request.completionNonce) {
+    const response = {
+      status: "ready",
+      expiresAt: request.expiresAt || "",
+      retryAfterMs: DESKTOP_AUTH_POLL_INTERVAL_MS,
+    };
+    if (includeCompletionCode) {
+      const completionCode = createDesktopCompletionCode(request);
+      if (!completionCode) {
+        return { status: "expired", expiresAt: request.expiresAt || "" };
+      }
+      response.completionCode = completionCode;
+    }
+    return response;
+  }
+  return {
+    status: "pending",
+    expiresAt: request.expiresAt || "",
+    retryAfterMs: DESKTOP_AUTH_POLL_INTERVAL_MS,
+  };
+}
+
 function parseBearerToken(req) {
   const value = req.headers.authorization || req.headers.Authorization || "";
   if (!value || typeof value !== "string") return "";
@@ -842,6 +991,22 @@ function parseBearerToken(req) {
 async function getAuthContext(req, billing) {
   const token = parseBearerToken(req);
   if (token) {
+    const verified = verifySignedToken(token, AUTH_SECRET);
+    if (verified.valid && verified.payload && verified.payload.type === "session") {
+      const session = findActiveSession(billing, token);
+      if (!session) {
+        return { ok: false, status: 401, error: "Session expired or revoked" };
+      }
+
+      const user =
+        findUserByUserId(billing, verified.payload.userId) ||
+        findUserByEmail(billing, verified.payload.email);
+      if (!user) return { ok: false, status: 401, error: "User not found" };
+      user.lastSeenAt = nowIso();
+      user.updatedAt = nowIso();
+      return { ok: true, user, authMode: "session", needsSave: true };
+    }
+
     if (SUPABASE_AUTH_ENABLED) {
       const response = await supabaseGetUser(token);
       if (!response.ok || !response.body?.id) {
@@ -861,22 +1026,7 @@ async function getAuthContext(req, billing) {
       return { ok: true, user, authMode: "supabase", needsSave: true };
     }
 
-    const verified = verifySignedToken(token, AUTH_SECRET);
-    if (!verified.valid || !verified.payload || verified.payload.type !== "session") {
-      return { ok: false, status: 401, error: "Invalid session token" };
-    }
-    const session = findActiveSession(billing, token);
-    if (!session) {
-      return { ok: false, status: 401, error: "Session expired or revoked" };
-    }
-
-    const user =
-      findUserByUserId(billing, verified.payload.userId) ||
-      findUserByEmail(billing, verified.payload.email);
-    if (!user) return { ok: false, status: 401, error: "User not found" };
-    user.lastSeenAt = nowIso();
-    user.updatedAt = nowIso();
-    return { ok: true, user, authMode: "session", needsSave: true };
+    return { ok: false, status: 401, error: "Invalid session token" };
   }
 
   if (ALLOW_DEV_EMAIL_AUTH) {
@@ -1270,6 +1420,19 @@ async function handleSignOut(req, res) {
   const token = parseBearerToken(req);
   if (!token) return json(res, 400, { error: "Missing auth token" });
 
+  const billing = await loadBilling();
+  cleanupExpiredAuthRecords(billing, nowMs());
+  const sessionToken = verifySignedToken(token, AUTH_SECRET);
+  if (sessionToken.valid && sessionToken.payload?.type === "session") {
+    const session = findActiveSession(billing, token);
+    if (session) {
+      session.revokedAt = nowIso();
+      session.updatedAt = nowIso();
+    }
+    await saveBilling(billing);
+    return json(res, 200, { ok: true });
+  }
+
   if (SUPABASE_AUTH_ENABLED) {
     // Supabase invalidates the refresh token chain. Access tokens remain valid
     // until expiration, which is expected for JWT-based auth systems.
@@ -1277,15 +1440,12 @@ async function handleSignOut(req, res) {
     return json(res, 200, { ok: true });
   }
 
-  const billing = await loadBilling();
-  cleanupExpiredAuthRecords(billing, nowMs());
   const auth = await getAuthContext(req, billing);
   if (!auth.ok) return json(res, auth.status, { error: auth.error });
-
-  const session = findActiveSession(billing, token);
-  if (session) {
-    session.revokedAt = nowIso();
-    session.updatedAt = nowIso();
+  const localSession = findActiveSession(billing, token);
+  if (localSession) {
+    localSession.revokedAt = nowIso();
+    localSession.updatedAt = nowIso();
   }
   await saveBilling(billing);
   return json(res, 200, { ok: true });
@@ -1446,6 +1606,159 @@ async function handleSignIn(req, res) {
   user.updatedAt = nowIso();
   const session = createSessionForUser(billing, user);
   await saveBilling(billing);
+  return json(res, 200, {
+    ok: true,
+    ...session,
+  });
+}
+
+async function handleDesktopAuthStart(req, res) {
+  const billing = await loadBilling();
+  cleanupExpiredAuthRecords(billing, nowMs());
+  const desktopRequest = createDesktopAuthRequest(billing, getBaseUrl(req));
+  await saveBilling(billing);
+  return json(res, 200, {
+    ok: true,
+    requestId: desktopRequest.requestId,
+    pollKey: desktopRequest.pollKey,
+    browserUrl: desktopRequest.browserUrl,
+    expiresAt: desktopRequest.expiresAt,
+    pollIntervalMs: desktopRequest.pollIntervalMs,
+    openAppUrl: DESKTOP_AUTH_OPEN_APP_URL,
+  });
+}
+
+async function handleDesktopAuthStatus(req, res) {
+  const url = new URL(req.url, getBaseUrl(req));
+  const requestId = String(url.searchParams.get("requestId") || "").trim();
+  const pollKey = String(url.searchParams.get("pollKey") || "").trim();
+  if (!requestId) {
+    return json(res, 400, { status: "invalid", error: "Missing requestId" });
+  }
+
+  const billing = await loadBilling();
+  const currentMs = nowMs();
+  cleanupExpiredAuthRecords(billing, currentMs);
+  const request = findDesktopAuthRequest(billing, requestId);
+
+  if (!request) {
+    return json(res, 404, { status: "invalid" });
+  }
+
+  const includeCompletionCode = hasDesktopAuthPollKey(request, pollKey);
+  const payload = buildDesktopAuthStatusPayload({
+    request,
+    currentMs,
+    includeCompletionCode,
+  });
+
+  if (payload.status === "expired" && request.status !== "expired") {
+    request.status = "expired";
+    request.updatedAt = nowIso();
+    await saveBilling(billing);
+  }
+  return json(res, 200, payload);
+}
+
+async function handleDesktopAuthComplete(req, res) {
+  const body = parseJsonBuffer(await readBody(req));
+  const requestId = String(body.requestId || "").trim();
+  if (!requestId) return json(res, 400, { error: "Missing requestId" });
+
+  const billing = await loadBilling();
+  const currentMs = nowMs();
+  cleanupExpiredAuthRecords(billing, currentMs);
+  const request = findDesktopAuthRequest(billing, requestId);
+  if (!request) {
+    return json(res, 404, { error: "Invalid desktop auth request" });
+  }
+  if (isDesktopAuthConsumed(request)) {
+    return json(res, 409, { error: "Desktop auth request already consumed" });
+  }
+  if (isDesktopAuthExpired(request, currentMs)) {
+    request.status = "expired";
+    request.updatedAt = nowIso();
+    await saveBilling(billing);
+    return json(res, 410, { error: "Desktop auth request expired" });
+  }
+
+  const auth = await getAuthContext(req, billing);
+  if (!auth.ok) {
+    return json(res, auth.status, { error: auth.error });
+  }
+
+  request.status = "ready";
+  request.userId = auth.user.userId;
+  request.email = auth.user.email;
+  request.completionNonce = randomBytes(16).toString("hex");
+  request.completedAt = nowIso();
+  request.updatedAt = nowIso();
+  await saveBilling(billing);
+
+  return json(res, 200, {
+    ok: true,
+    status: "ready",
+    expiresAt: request.expiresAt,
+    openAppUrl: DESKTOP_AUTH_OPEN_APP_URL,
+  });
+}
+
+async function handleDesktopAuthExchange(req, res) {
+  const body = parseJsonBuffer(await readBody(req));
+  const requestId = String(body.requestId || "").trim();
+  const pollKey = String(body.pollKey || "").trim();
+  const completionCode = String(body.completionCode || "").trim();
+  if (!requestId || !pollKey || !completionCode) {
+    return json(res, 400, { error: "requestId, pollKey, and completionCode are required" });
+  }
+
+  const billing = await loadBilling();
+  const currentMs = nowMs();
+  cleanupExpiredAuthRecords(billing, currentMs);
+  const request = findDesktopAuthRequest(billing, requestId);
+  if (!request) {
+    return json(res, 404, { error: "Invalid desktop auth request" });
+  }
+  if (!hasDesktopAuthPollKey(request, pollKey)) {
+    return json(res, 401, { error: "Invalid desktop auth poll key" });
+  }
+  if (isDesktopAuthConsumed(request)) {
+    return json(res, 409, { error: "Desktop auth request already consumed" });
+  }
+  if (isDesktopAuthExpired(request, currentMs)) {
+    request.status = "expired";
+    request.updatedAt = nowIso();
+    await saveBilling(billing);
+    return json(res, 410, { error: "Desktop auth request expired" });
+  }
+  if (request.status !== "ready" || !request.completionNonce) {
+    return json(res, 409, { error: "Desktop auth request is not ready yet" });
+  }
+
+  const verifiedCode = verifySignedToken(completionCode, AUTH_SECRET);
+  if (
+    !verifiedCode.valid ||
+    !verifiedCode.payload ||
+    verifiedCode.payload.type !== "desktop_completion" ||
+    !safeEqualString(String(verifiedCode.payload.requestId || ""), request.requestId) ||
+    !safeEqualString(String(verifiedCode.payload.nonce || ""), request.completionNonce)
+  ) {
+    return json(res, 401, { error: "Invalid completion code" });
+  }
+
+  const user =
+    findUserByUserId(billing, request.userId) || findUserByEmail(billing, request.email);
+  if (!user) {
+    return json(res, 404, { error: "User not found for this desktop auth request" });
+  }
+
+  const session = createSessionForUser(billing, user);
+  request.status = "consumed";
+  request.completionNonce = "";
+  request.consumedAt = nowIso();
+  request.updatedAt = nowIso();
+  await saveBilling(billing);
+
   return json(res, 200, {
     ok: true,
     ...session,
@@ -1701,7 +2014,16 @@ async function handleOrderStatus(req, res) {
 
 async function handleStaticRequest(req, res) {
   const url = new URL(req.url, getBaseUrl(req));
-  const filePath = path.join(REPO_ROOT, url.pathname === "/" ? "index.html" : url.pathname);
+  const requestedPath = url.pathname === "/" ? "/index.html" : url.pathname;
+  let staticPath = requestedPath;
+  if (!path.extname(staticPath)) {
+    const htmlCandidate = `${staticPath}.html`;
+    if (fs.existsSync(path.join(REPO_ROOT, htmlCandidate))) {
+      staticPath = htmlCandidate;
+    }
+  }
+
+  const filePath = path.join(REPO_ROOT, staticPath.replace(/^\/+/, ""));
   if (!filePath.startsWith(REPO_ROOT)) {
     res.writeHead(403);
     return res.end("Forbidden");
@@ -1728,6 +2050,18 @@ async function handleRequest(req, res) {
     }
     if (req.method === "POST" && url.pathname === "/api/manage-subscription") {
       return await handleManageSubscription(req, res);
+    }
+    if (req.method === "POST" && url.pathname === "/api/auth/desktop/start") {
+      return await handleDesktopAuthStart(req, res);
+    }
+    if (req.method === "GET" && url.pathname === "/api/auth/desktop/status") {
+      return await handleDesktopAuthStatus(req, res);
+    }
+    if (req.method === "POST" && url.pathname === "/api/auth/desktop/complete") {
+      return await handleDesktopAuthComplete(req, res);
+    }
+    if (req.method === "POST" && url.pathname === "/api/auth/desktop/exchange") {
+      return await handleDesktopAuthExchange(req, res);
     }
     if (req.method === "POST" && url.pathname === "/api/auth/sign-up") {
       return await handleSignUp(req, res);

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnackVoice Desktop Sign-In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body class="desktop-auth-page">
+  <main class="desktop-auth-shell">
+    <section class="desktop-auth-card" aria-live="polite">
+      <p class="desktop-auth-eyebrow">SnackVoice Desktop</p>
+      <h1>Sign in via browser</h1>
+      <p class="desktop-auth-copy" id="desktop-auth-copy">
+        Sign in to your SnackVoice account, then return to the app.
+      </p>
+
+      <div id="desktop-auth-form-stage">
+        <form id="desktop-auth-form" class="auth-form desktop-auth-form">
+          <label for="desktop-auth-email">Email</label>
+          <input
+            id="desktop-auth-email"
+            type="email"
+            required
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
+          <label for="desktop-auth-password">Password</label>
+          <input
+            id="desktop-auth-password"
+            type="password"
+            required
+            placeholder="At least 8 characters"
+            autocomplete="current-password"
+            minlength="8"
+          />
+          <div class="auth-actions">
+            <button class="btn btn-primary" type="submit" data-auth-mode="signin">
+              Sign in
+            </button>
+            <button class="btn btn-secondary" type="submit" data-auth-mode="signup">
+              Create account
+            </button>
+          </div>
+        </form>
+        <p class="auth-status desktop-auth-status" id="desktop-auth-status"></p>
+      </div>
+
+      <div id="desktop-auth-verify-stage" hidden>
+        <h2 class="desktop-auth-subtitle">Check your email</h2>
+        <p class="desktop-auth-copy">
+          Account verification is required before this desktop sign-in can finish.
+          Confirm your email, then come back and sign in again.
+        </p>
+      </div>
+
+      <div id="desktop-auth-success-stage" hidden>
+        <h2 class="desktop-auth-subtitle">Desktop sign-in complete</h2>
+        <p class="desktop-auth-copy">
+          You can return to SnackVoice now. This browser tab no longer needs to stay open.
+        </p>
+        <div class="auth-actions">
+          <a class="btn btn-primary" id="desktop-auth-open-app" href="snackvoice://">
+            Open SnackVoice
+          </a>
+          <button class="btn btn-secondary" id="desktop-auth-close-window" type="button">
+            Close this window
+          </button>
+        </div>
+      </div>
+
+      <div id="desktop-auth-error-stage" hidden>
+        <h2 class="desktop-auth-subtitle">This sign-in request is no longer valid</h2>
+        <p class="desktop-auth-copy" id="desktop-auth-error-copy">
+          The desktop sign-in request expired. Start again from the SnackVoice app.
+        </p>
+      </div>
+
+      <p class="desktop-auth-footnote">
+        Need a plan? <a href="/" rel="noreferrer">View pricing</a>
+      </p>
+    </section>
+  </main>
+  <script src="/assets/desktop-auth.js" defer></script>
+</body>
+</html>

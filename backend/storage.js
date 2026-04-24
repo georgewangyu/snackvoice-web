@@ -121,6 +121,11 @@ class PostgresStorage {
         payload jsonb not null,
         updated_at timestamptz not null default now()
       );
+      create table if not exists snackvoice_kv_desktop_auth_requests (
+        id text primary key,
+        payload jsonb not null,
+        updated_at timestamptz not null default now()
+      );
       create table if not exists snackvoice_kv_orders (
         id text primary key,
         payload jsonb not null,
@@ -144,11 +149,20 @@ class PostgresStorage {
     try {
       await client.query("begin");
       await client.query(`delete from ${table}`);
+      const dedupedItems = new Map();
       for (const item of items) {
         const id = String(item?.[idField] || "");
         if (!id) continue;
+        dedupedItems.set(id, item);
+      }
+      for (const [id, item] of dedupedItems.entries()) {
         await client.query(
-          `insert into ${table} (id, payload, updated_at) values ($1, $2::jsonb, now())`,
+          `
+            insert into ${table} (id, payload, updated_at)
+            values ($1, $2::jsonb, now())
+            on conflict (id)
+            do update set payload = excluded.payload, updated_at = now()
+          `,
           [id, JSON.stringify(item)]
         );
       }
@@ -168,12 +182,14 @@ class PostgresStorage {
       checkoutSessions,
       webhookEvents,
       sessions,
+      desktopAuthRequests,
     ] = await Promise.all([
       this.readCollection("snackvoice_kv_users"),
       this.readCollection("snackvoice_kv_subscriptions"),
       this.readCollection("snackvoice_kv_checkout_sessions"),
       this.readCollection("snackvoice_kv_webhook_events"),
       this.readCollection("snackvoice_kv_sessions"),
+      this.readCollection("snackvoice_kv_desktop_auth_requests"),
     ]);
 
     return {
@@ -182,6 +198,7 @@ class PostgresStorage {
       checkoutSessions,
       webhookEvents,
       sessions,
+      desktopAuthRequests,
     };
   }
 
@@ -212,6 +229,11 @@ class PostgresStorage {
         "snackvoice_kv_sessions",
         "sessionId",
         ensureArray(safe.sessions)
+      ),
+      this.replaceCollection(
+        "snackvoice_kv_desktop_auth_requests",
+        "requestId",
+        ensureArray(safe.desktopAuthRequests)
       ),
     ]);
   }
