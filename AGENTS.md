@@ -34,8 +34,8 @@ User clicks CTA
 
 ## Mac App Delivery
 
-- Host the `.dmg` on GitHub Releases
-- Set `DOWNLOAD_URL` in `.env` to the release download URL
+- Use S3 as the download source of truth (same bucket path updated by SnackVoice release pipeline)
+- Configure `S3_BUCKET`, `S3_KEY_ARM64`, `S3_KEY_X64`, and `AWS_REGION` in `.env`
 - User downloads, drags to Applications, and launches
 
 ## Key Files

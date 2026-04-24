@@ -18,11 +18,11 @@
     <div class="nav-inner">
       <a class="nav-logo" href="/">SnackVoice</a>
       <div class="nav-links">
-        <a href="#proof">Proof</a>
+        <a href="#pricing">Pricing</a>
         <a href="#features">Features</a>
         <a href="#faq">FAQ</a>
         <button class="btn btn-secondary btn-sm" id="nav-account-btn">Sign in</button>
-        <button class="btn btn-primary btn-sm" id="nav-cta">Start Monthly</button>
+        <a class="btn btn-primary btn-sm" id="nav-download" href="/api/download/latest?arch=arm64">Download macOS DMG</a>
       </div>
     </div>
   </nav>
@@ -44,15 +44,11 @@
             SnackVoice transcribes locally on your Mac, drops clean text into any app,
             and keeps your voice off someone else’s server.
           </p>
-          <div class="plan-switch" role="tablist" aria-label="Billing plan">
-            <button class="plan-switch-btn" data-plan-option="monthly" role="tab" aria-selected="true">Monthly</button>
-            <button class="plan-switch-btn" data-plan-option="annual" role="tab" aria-selected="false">Annual</button>
-          </div>
           <div class="hero-cta-row">
-            <button class="btn btn-primary" id="hero-cta">Start Monthly — $14.99</button>
-            <a class="btn btn-secondary" href="#proof">See how it works</a>
+            <a class="btn btn-primary" id="hero-download" href="/api/download/latest?arch=arm64">Download macOS DMG</a>
+            <a class="btn btn-secondary" href="#pricing">View pricing</a>
           </div>
-          <div class="hero-cta-note">Free tier: 1,000 words/week · Paid plans unlock unlimited words</div>
+          <div class="hero-cta-note">Pricing plans are monthly or annual. Both unlock full dictation.</div>
         </div>
 
         <div class="hero-visual reveal reveal-up" aria-label="SnackVoice demo preview">
@@ -94,7 +90,7 @@
                 </div>
                 <div class="mini-proof">
                   <span class="mini-proof-label">License</span>
-                  <strong>Free + Paid</strong>
+                  <strong>Monthly + Annual</strong>
                 </div>
               </div>
             </div>
@@ -135,8 +131,8 @@
         <div class="workflow-steps">
           <article class="how-step reveal reveal-up">
             <div class="step-num">01</div>
-            <div class="step-title">Start free or paid</div>
-            <div class="step-desc">Choose monthly, annual, or begin with the free 1,000 words/week tier.</div>
+            <div class="step-title">Pick your plan</div>
+            <div class="step-desc">Use the pricing tabs to choose monthly or annual billing.</div>
           </article>
           <article class="how-step reveal reveal-up">
             <div class="step-num">02</div>
@@ -207,24 +203,25 @@
         </div>
 
         <div class="pricing-card featured reveal reveal-up" id="pricing">
-          <div class="price-badge">SUBSCRIPTION PLANS</div>
-          <div class="price-amount"><sup>$</sup>14.99</div>
-          <div class="price-once" id="pricing-plan-subtitle">Monthly · Unlimited words</div>
+          <div class="price-badge">Pricing</div>
+          <div class="price-amount" id="pricing-plan-price">$14.99</div>
+          <div class="price-once" id="pricing-plan-subtitle">Monthly plan · billed monthly</div>
+          <p class="pricing-plan-detail" id="pricing-plan-detail">Best for flexible month-to-month usage.</p>
           <div class="plan-switch plan-switch-compact" role="tablist" aria-label="Billing plan">
             <button class="plan-switch-btn" data-plan-option="monthly" role="tab" aria-selected="true">Monthly</button>
             <button class="plan-switch-btn" data-plan-option="annual" role="tab" aria-selected="false">Annual</button>
           </div>
           <ul class="price-features">
             <li>Full SnackVoice app for Mac</li>
-            <li>Instant download access</li>
+            <li>Download starts immediately</li>
             <li>Local transcription with account-based entitlement</li>
             <li>Works in any text field on your Mac</li>
-            <li>Free tier available: 1,000 words per week</li>
-            <li>Annual option: $149.99/year</li>
+            <li id="pricing-plan-billing">Billed $14.99 each month.</li>
           </ul>
-          <button class="btn btn-primary pricing-button" id="pricing-cta">Start Monthly — $14.99</button>
+          <a class="btn btn-primary pricing-button" id="pricing-download" href="/api/download/latest?arch=arm64">Download macOS DMG</a>
+          <p class="pricing-secondary-link">Need Intel? <a id="pricing-download-intel" href="/api/download/latest?arch=x64">Download Intel build</a>.</p>
           <div class="account-panel" id="account-panel">
-            <p class="account-title" id="account-summary">Sign in required before checkout.</p>
+            <p class="account-title" id="account-summary">Already subscribed? Sign in to manage your plan.</p>
             <p class="account-meta" id="account-meta">Use one email account across devices to keep usage and subscription status in sync.</p>
             <div class="account-actions">
               <button class="btn btn-secondary btn-sm" id="account-signin-btn">Sign in</button>
@@ -232,7 +229,7 @@
               <button class="btn btn-ghost btn-sm" id="account-signout-btn" hidden>Sign out</button>
             </div>
           </div>
-          <p class="pricing-note">Secure checkout via Stripe · one subscription per email · contact support if delivery misfires</p>
+          <p class="pricing-note">Monthly: $14.99 · Annual: $149.99 · one subscription per email</p>
         </div>
       </div>
     </section>
@@ -271,8 +268,8 @@
           <h2 class="section-title">If you already think in spoken drafts, this should be on your Mac.</h2>
         </div>
         <div class="final-cta-actions">
-          <button class="btn btn-primary" id="bottom-cta">Start Monthly — $14.99</button>
-          <p>Free tier available. Private by default. Built for everyday writing.</p>
+          <a class="btn btn-primary" id="bottom-download" href="/api/download/latest?arch=arm64">Download macOS DMG</a>
+          <p>Private by default. Built for everyday writing.</p>
         </div>
       </div>
     </section>
@@ -295,7 +292,7 @@
     <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
       <button class="auth-close" id="auth-modal-close" aria-label="Close auth dialog">✕</button>
       <h2 id="auth-title">Sign in to SnackVoice</h2>
-      <p class="auth-intro">Create an account with email and password, then use the same login across devices for billing and weekly usage.</p>
+      <p class="auth-intro">Create an account with email and password, then use the same login across devices for subscription and usage sync.</p>
       <form id="auth-form" class="auth-form">
         <label for="auth-email">Email</label>
         <input id="auth-email" type="email" required placeholder="you@example.com" autocomplete="email" />

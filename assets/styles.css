@@ -725,6 +725,11 @@ main {
   color: var(--text-subtle);
 }
 
+.pricing-plan-detail {
+  margin: -16px 0 14px;
+  color: var(--text-muted);
+}
+
 .price-features {
   list-style: none;
   margin: 0 0 28px;
@@ -747,6 +752,17 @@ main {
 
 .pricing-button {
   width: 100%;
+}
+
+.pricing-secondary-link {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+.pricing-secondary-link a {
+  color: var(--text);
 }
 
 .account-panel {

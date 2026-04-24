@@ -46,12 +46,12 @@ const STRIPE_DEFAULT_PLAN = (
   process.env.STRIPE_DEFAULT_PLAN || "monthly"
 ).toLowerCase();
 const APP_URL = process.env.APP_URL || "";
-const DOWNLOAD_URL_ARM64 =
-  process.env.DOWNLOAD_URL_ARM64 || process.env.DOWNLOAD_URL || "";
-const DOWNLOAD_URL_X64 = process.env.DOWNLOAD_URL_X64 || "";
 const S3_BUCKET = process.env.S3_BUCKET || "";
-const S3_KEY_ARM64 = process.env.S3_KEY_ARM64 || process.env.S3_KEY || "";
-const S3_KEY_X64 = process.env.S3_KEY_X64 || "";
+const S3_KEY_ARM64 =
+  process.env.S3_KEY_ARM64 ||
+  process.env.S3_KEY ||
+  "SnackVoice-Apple-Silicon.dmg";
+const S3_KEY_X64 = process.env.S3_KEY_X64 || "SnackVoice-Intel.dmg";
 const S3_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "";
 const S3_URL_TTL = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || 86400);
 const FREE_WEEKLY_WORD_QUOTA = Number(process.env.FREE_WEEKLY_WORD_QUOTA || 1000);
@@ -75,7 +75,7 @@ const AUTH_SECRET =
   "snackvoice-dev-auth-secret";
 
 const REPO_ROOT = path.resolve(__dirname, "..");
-const HAS_S3_DOWNLOAD = !!(S3_BUCKET && S3_REGION);
+const HAS_S3_DOWNLOAD = !!(S3_BUCKET && S3_REGION && S3_KEY_ARM64);
 const ORDERS_PATH = process.env.ORDERS_DATA_PATH
   ? path.resolve(REPO_ROOT, process.env.ORDERS_DATA_PATH)
   : path.join(__dirname, "data", "orders.json");
@@ -1141,19 +1141,31 @@ async function createSignedDownloadUrl(key, filename) {
   return getSignedUrl(client, command, { expiresIn: S3_URL_TTL });
 }
 
-async function createDownloadLinks() {
-  if (HAS_S3_DOWNLOAD) {
-    return {
-      appleSilicon: await createSignedDownloadUrl(
-        S3_KEY_ARM64,
-        "SnackVoice-Apple-Silicon.dmg"
-      ),
-      intel: await createSignedDownloadUrl(S3_KEY_X64, "SnackVoice-Intel.dmg"),
-    };
+function getS3DownloadConfigError() {
+  if (!S3_BUCKET) {
+    return "Missing S3 download config: S3_BUCKET";
   }
+  if (!S3_REGION) {
+    return "Missing S3 download config: AWS_REGION (or AWS_DEFAULT_REGION)";
+  }
+  if (!S3_KEY_ARM64) {
+    return "Missing S3 download config: S3_KEY_ARM64";
+  }
+  return "";
+}
+
+async function createDownloadLinks() {
+  const configError = getS3DownloadConfigError();
+  if (configError) {
+    throw new Error(configError);
+  }
+
   return {
-    appleSilicon: DOWNLOAD_URL_ARM64,
-    intel: DOWNLOAD_URL_X64,
+    appleSilicon: await createSignedDownloadUrl(
+      S3_KEY_ARM64,
+      "SnackVoice-Apple-Silicon.dmg"
+    ),
+    intel: await createSignedDownloadUrl(S3_KEY_X64, "SnackVoice-Intel.dmg"),
   };
 }
 
@@ -1215,8 +1227,17 @@ async function getOrderBySessionId(sessionId) {
 async function publicOrder(order) {
   if (!order) return null;
   let downloadUrls = order.downloadUrls || null;
+  let fulfillmentStatus = order.fulfillmentStatus || "pending";
+  let fulfillmentError = order.fulfillmentError || "";
   if (order.fulfillmentStatus === "fulfilled") {
-    downloadUrls = await createDownloadLinks();
+    try {
+      downloadUrls = await createDownloadLinks();
+    } catch (error) {
+      downloadUrls = null;
+      fulfillmentStatus = "failed";
+      fulfillmentError =
+        error instanceof Error ? error.message : "Download is not configured yet";
+    }
   }
   return {
     email: order.email,
@@ -1224,8 +1245,8 @@ async function publicOrder(order) {
     phone: order.phone || "",
     stripeSessionId: order.stripeSessionId,
     downloadUrls,
-    fulfillmentStatus: order.fulfillmentStatus || "pending",
-    fulfillmentError: order.fulfillmentError || "",
+    fulfillmentStatus,
+    fulfillmentError,
     createdAt: order.created_at || "",
   };
 }
@@ -2012,6 +2033,38 @@ async function handleOrderStatus(req, res) {
   return json(res, 200, { order: await publicOrder(order) });
 }
 
+async function handleLatestDownload(req, res) {
+  const url = new URL(req.url, getBaseUrl(req));
+  const arch = String(url.searchParams.get("arch") || "arm64").toLowerCase();
+  const preferIntel = arch === "x64" || arch === "intel";
+  let links;
+  try {
+    links = await createDownloadLinks();
+  } catch (error) {
+    return json(res, 503, {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Download is not configured yet",
+    });
+  }
+  const targetUrl = preferIntel
+    ? links.intel || links.appleSilicon
+    : links.appleSilicon || links.intel;
+
+  if (!targetUrl) {
+    return json(res, 503, {
+      error: "Download is not configured yet",
+    });
+  }
+
+  res.writeHead(302, {
+    Location: targetUrl,
+    "Cache-Control": "no-store",
+  });
+  res.end();
+}
+
 async function handleStaticRequest(req, res) {
   const url = new URL(req.url, getBaseUrl(req));
   const requestedPath = url.pathname === "/" ? "/index.html" : url.pathname;
@@ -2087,6 +2140,9 @@ async function handleRequest(req, res) {
     if (req.method === "GET" && url.pathname === "/api/order-status") {
       return await handleOrderStatus(req, res);
     }
+    if (req.method === "GET" && url.pathname === "/api/download/latest") {
+      return await handleLatestDownload(req, res);
+    }
     return await handleStaticRequest(req, res);
   } catch (err) {
     console.error("[server] Unhandled error:", err);
@@ -2111,4 +2167,5 @@ module.exports = {
   handleConsumeWords,
   handleWebhook,
   handleOrderStatus,
+  handleLatestDownload,
 };

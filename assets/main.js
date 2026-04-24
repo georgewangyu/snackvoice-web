@@ -1,21 +1,22 @@
 "use strict";
 
-const CTA_IDS = ["nav-cta", "hero-cta", "pricing-cta", "bottom-cta"];
 const PLAN_SWITCH_SELECTOR = "[data-plan-option]";
 const REVEAL_SELECTOR = ".reveal";
 const TRANSCRIPT_SELECTOR = "[data-transcript-line]";
 const SESSION_STORAGE_KEY = "snackvoice.session.token";
-const PENDING_CHECKOUT_KEY = "snackvoice.pending.checkout";
-const PENDING_CHECKOUT_TTL_MS = 30 * 60 * 1000;
 
 const PLAN_META = {
   monthly: {
-    ctaLabel: "Start Monthly — $14.99",
-    pricingSubtitle: "Monthly · Unlimited words",
+    pricingPrice: "$14.99",
+    pricingSubtitle: "Monthly plan · billed monthly",
+    pricingDetail: "Best for flexible month-to-month usage.",
+    pricingBilling: "Billed $14.99 each month.",
   },
   annual: {
-    ctaLabel: "Start Annual — $149.99",
-    pricingSubtitle: "Annual · $149.99/year · Unlimited words",
+    pricingPrice: "$149.99",
+    pricingSubtitle: "Annual plan · billed yearly",
+    pricingDetail: "Best value for teams or daily heavy use.",
+    pricingBilling: "Billed $149.99 each year.",
   },
 };
 
@@ -30,17 +31,6 @@ function authHeaders(includeJson = false) {
   if (includeJson) headers["Content-Type"] = "application/json";
   if (state.sessionToken) headers.Authorization = `Bearer ${state.sessionToken}`;
   return headers;
-}
-
-function setLoading(btn, loading) {
-  if (loading) {
-    btn.dataset.originalText = btn.textContent;
-    btn.textContent = "Starting checkout…";
-    btn.classList.add("btn-loading");
-  } else {
-    btn.textContent = btn.dataset.originalText || PLAN_META[state.selectedPlan].ctaLabel;
-    btn.classList.remove("btn-loading");
-  }
 }
 
 function setAuthStatus(message) {
@@ -60,32 +50,6 @@ function setSessionToken(token) {
 function selectedPlan() {
   if (state.selectedPlan === "annual") return "annual";
   return "monthly";
-}
-
-function rememberPendingCheckout() {
-  const payload = {
-    plan: selectedPlan(),
-    at: Date.now(),
-  };
-  localStorage.setItem(PENDING_CHECKOUT_KEY, JSON.stringify(payload));
-}
-
-function consumePendingCheckout() {
-  const raw = localStorage.getItem(PENDING_CHECKOUT_KEY);
-  if (!raw) return null;
-  localStorage.removeItem(PENDING_CHECKOUT_KEY);
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return null;
-    const at = Number(parsed.at || 0);
-    if (!Number.isFinite(at) || Date.now() - at > PENDING_CHECKOUT_TTL_MS) {
-      return null;
-    }
-    const plan = parsed.plan === "annual" ? "annual" : "monthly";
-    return { plan };
-  } catch {
-    return null;
-  }
 }
 
 function openAuthModal() {
@@ -110,15 +74,25 @@ function updatePlanUI() {
     button.setAttribute("aria-selected", isActive ? "true" : "false");
   });
 
+  const pricingPrice = document.getElementById("pricing-plan-price");
+  if (pricingPrice) {
+    pricingPrice.textContent = PLAN_META[plan].pricingPrice;
+  }
+
   const pricingSubtitle = document.getElementById("pricing-plan-subtitle");
   if (pricingSubtitle) {
     pricingSubtitle.textContent = PLAN_META[plan].pricingSubtitle;
   }
 
-  CTA_IDS.forEach((id) => {
-    const btn = document.getElementById(id);
-    if (btn) btn.textContent = PLAN_META[plan].ctaLabel;
-  });
+  const pricingDetail = document.getElementById("pricing-plan-detail");
+  if (pricingDetail) {
+    pricingDetail.textContent = PLAN_META[plan].pricingDetail;
+  }
+
+  const pricingBilling = document.getElementById("pricing-plan-billing");
+  if (pricingBilling) {
+    pricingBilling.textContent = PLAN_META[plan].pricingBilling;
+  }
 }
 
 function updateAccountUI() {
@@ -142,7 +116,7 @@ function updateAccountUI() {
   if (!accountSummary || !accountMeta) return;
 
   if (!authenticated) {
-    accountSummary.textContent = "Sign in required before checkout.";
+    accountSummary.textContent = "Already subscribed? Sign in to manage your plan.";
     accountMeta.textContent =
       "Use one email account across devices to keep usage and subscription status in sync.";
     return;
@@ -183,34 +157,6 @@ async function refreshSession() {
     updateAccountUI();
   } catch (error) {
     console.error("Session check failed:", error);
-  }
-}
-
-async function startCheckout(btn) {
-  if (!state.account?.authenticated) {
-    rememberPendingCheckout();
-    openAuthModal();
-    return;
-  }
-
-  if (btn) setLoading(btn, true);
-  try {
-    const res = await fetch("/api/create-checkout", {
-      method: "POST",
-      headers: authHeaders(true),
-      body: JSON.stringify({ plan: selectedPlan() }),
-    });
-    const payload = await res.json();
-    if (!res.ok || !payload?.url) {
-      throw new Error(payload?.error || "Checkout failed");
-    }
-    window.location.href = payload.url;
-  } catch (error) {
-    console.error("Checkout error:", error);
-    alert(
-      "Unable to start checkout. Make sure you are signed in, then try again.",
-    );
-    if (btn) setLoading(btn, false);
   }
 }
 
@@ -351,12 +297,6 @@ function bindAuthUi() {
       setSessionToken(payload.token);
       await refreshSession();
       closeAuthModal();
-      const pending = consumePendingCheckout();
-      if (pending) {
-        state.selectedPlan = pending.plan;
-        updatePlanUI();
-        await startCheckout(null);
-      }
     } catch (error) {
       setAuthStatus(error.message);
     }
@@ -391,11 +331,6 @@ function bindPlanSwitches() {
 document.addEventListener("DOMContentLoaded", async () => {
   const storedToken = localStorage.getItem(SESSION_STORAGE_KEY) || "";
   setSessionToken(storedToken);
-
-  CTA_IDS.forEach((id) => {
-    const btn = document.getElementById(id);
-    if (btn) btn.addEventListener("click", () => void startCheckout(btn));
-  });
 
   bindPlanSwitches();
   bindAuthUi();

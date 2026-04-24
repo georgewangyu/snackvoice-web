@@ -59,14 +59,14 @@ async function run() {
   const nav = await page.$("nav");
   assert("Nav bar present", !!nav);
 
-  const navCta = await page.$("#nav-cta");
-  assert("Nav CTA button present", !!navCta);
+  const navDownload = await page.$("#nav-download");
+  assert("Nav download button present", !!navDownload);
 
-  const heroCta = await page.$("#hero-cta");
-  assert("Hero CTA button present", !!heroCta);
+  const heroDownload = await page.$("#hero-download");
+  assert("Hero download button present", !!heroDownload);
 
-  const pricingCta = await page.$("#pricing-cta");
-  assert("Pricing CTA button present", !!pricingCta);
+  const pricingDownload = await page.$("#pricing-download");
+  assert("Pricing download button present", !!pricingDownload);
 
   const featCards = await page.$$(".feature-card");
   assert("6 feature cards rendered", featCards.length === 6);
@@ -85,22 +85,23 @@ async function run() {
   await page.click('[data-plan-option="annual"]');
   await new Promise((r) => setTimeout(r, 80));
 
-  const heroCtaAnnual = await page.$eval("#hero-cta", (el) => el.textContent.trim());
-  assert("Hero CTA updates to annual", heroCtaAnnual.includes("Annual"));
-  assert("Hero CTA annual price visible", heroCtaAnnual.includes("149.99"));
+  const pricingAmountAnnual = await page.$eval("#pricing-plan-price", (el) =>
+    el.textContent.trim()
+  );
+  assert("Pricing amount updates to annual", pricingAmountAnnual.includes("149.99"));
 
   const pricingSubtitle = await page.$eval("#pricing-plan-subtitle", (el) =>
     el.textContent.trim()
   );
   assert("Pricing subtitle updates to annual", pricingSubtitle.includes("Annual"));
 
-  // ── Auth gating + sign-in smoke ───────────────────────────────────────────
-  console.log("\n[3] Auth + Checkout gating");
-  await page.click("#hero-cta");
+  // ── Auth modal + sign-in smoke ────────────────────────────────────────────
+  console.log("\n[3] Auth modal + account");
+  await page.click("#nav-account-btn");
   await new Promise((r) => setTimeout(r, 120));
 
   const modalVisibleAfterCta = await page.$eval("#auth-modal", (el) => !el.hidden);
-  assert("Unauthenticated CTA opens auth modal", modalVisibleAfterCta);
+  assert("Unauthenticated account action opens auth modal", modalVisibleAfterCta);
 
   const qaEmail = `qa+${Date.now()}@example.com`;
   const qaPassword = "password123";
@@ -113,27 +114,38 @@ async function run() {
   assert("Password auth closes auth modal", modalHiddenAfterVerify);
 
   const accountSummary = await page.$eval("#account-summary", (el) => el.textContent.trim());
-  assert("Account panel updates after sign-in", !accountSummary.includes("Sign in required"));
+  assert("Account panel updates after sign-in", !accountSummary.includes("Already subscribed"));
 
-  // ── Checkout API payload shape ────────────────────────────────────────────
-  console.log("\n[4] Checkout API shape");
+  // ── Download API route shape ──────────────────────────────────────────────
+  console.log("\n[4] Download API shape");
   const apiRes = await page.evaluate(async (base) => {
     try {
-      const r = await fetch(`${base}/api/create-checkout`, { method: "POST" });
-      return { status: r.status, body: await r.json() };
+      const r = await fetch(`${base}/api/download/latest?arch=arm64`, {
+        method: "GET",
+        redirect: "manual",
+      });
+      const contentType = r.headers.get("content-type") || "";
+      let body = {};
+      if (contentType.includes("application/json")) {
+        body = await r.json();
+      }
+      return {
+        status: r.status,
+        location: r.headers.get("location") || "",
+        body,
+      };
     } catch (e) {
       return { error: e.message };
     }
   }, BASE);
   assert(
-    "POST /api/create-checkout returns known status",
-    apiRes.status === 200 || apiRes.status === 400 || apiRes.status === 401
+    "GET /api/download/latest returns known status",
+    apiRes.status === 302 || apiRes.status === 503
   );
-  const checkoutHasExpectedPayload =
-    (apiRes.status === 200 && typeof apiRes.body?.url === "string") ||
-    ((apiRes.status === 400 || apiRes.status === 401) &&
-      typeof apiRes.body?.error === "string");
-  assert("Checkout API returns url or structured error", checkoutHasExpectedPayload);
+  const downloadHasExpectedPayload =
+    (apiRes.status === 302 && apiRes.location.length > 0) ||
+    (apiRes.status === 503 && typeof apiRes.body?.error === "string");
+  assert("Download API returns redirect or structured error", downloadHasExpectedPayload);
 
   // ── Success page ──────────────────────────────────────────────────────────
   console.log("\n[5] Success page");
@@ -153,9 +165,9 @@ async function run() {
   const mobileH1 = await page.$eval("h1", (el) => el.textContent.trim());
   assert("Hero headline visible on mobile", mobileH1.length > 0);
 
-  const mobileCta = await page.$("#hero-cta");
+  const mobileCta = await page.$("#hero-download");
   const mobilCtaVisible = await mobileCta.isIntersectingViewport();
-  assert("Hero CTA visible on mobile", mobilCtaVisible);
+  assert("Hero download button visible on mobile", mobilCtaVisible);
 
   // ── Results ───────────────────────────────────────────────────────────────
   await browser.close();
