@@ -907,7 +907,8 @@ function createDesktopAuthRequest(billing, baseUrl) {
   const pollKey = randomBytes(18).toString("base64url");
   const createdAt = nowIso();
   const expiresAt = toIsoFromMs(nowMs() + DESKTOP_AUTH_REQUEST_TTL_MS);
-  const authUrl = new URL("/desktop-auth", baseUrl);
+  // Vercel static hosting serves this as desktop-auth.html (not extensionless).
+  const authUrl = new URL("/desktop-auth.html", baseUrl);
   authUrl.searchParams.set("requestId", requestId);
   if (DESKTOP_AUTH_OPEN_APP_URL) {
     authUrl.searchParams.set("openAppUrl", DESKTOP_AUTH_OPEN_APP_URL);
