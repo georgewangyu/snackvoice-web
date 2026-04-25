@@ -1422,8 +1422,14 @@ async function handleCreateCheckout(req, res) {
   const { plan, priceId } = resolvePriceId(body.plan);
 
   if (!STRIPE_SECRET || !priceId) {
-    console.warn("[checkout] Stripe checkout not configured, returning mock URL");
-    return json(res, 200, { url: `${baseUrl}/success.html?mock=1` });
+    console.error("[checkout] Stripe checkout misconfigured", {
+      hasStripeSecret: !!STRIPE_SECRET,
+      hasPriceId: !!priceId,
+      plan,
+    });
+    return json(res, 503, {
+      error: "Stripe subscription checkout is not configured yet",
+    });
   }
 
   if (plan === "annual" && !STRIPE_PRICE_ID_ANNUAL) {

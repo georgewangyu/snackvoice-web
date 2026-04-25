@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node backend/server.js",
+    "dev:quota10": "FREE_WEEKLY_WORD_QUOTA=10 PORT=4200 APP_URL=http://localhost:4200 node backend/server.js",
     "dev:test": "ENV_FILE=backend/.env.test.local node backend/server.js",
     "dev:live": "ENV_FILE=backend/.env.live.local node backend/server.js",
     "qa": "node scripts/qa.js",
