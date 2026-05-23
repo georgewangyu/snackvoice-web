@@ -56,6 +56,17 @@ const S3_KEY_ARM64 =
   process.env.S3_KEY ||
   "SnackVoice-Apple-Silicon.dmg";
 const S3_KEY_X64 = process.env.S3_KEY_X64 || "SnackVoice-Intel.dmg";
+const S3_BETA_KEY_ARM64 =
+  process.env.SNACKVOICE_BETA_S3_KEY_ARM64 ||
+  "beta/SnackVoice-Apple-Silicon.dmg";
+const S3_BETA_KEY_X64 =
+  process.env.SNACKVOICE_BETA_S3_KEY_X64 || "beta/SnackVoice-Intel.dmg";
+const BETA_EMAILS = new Set(
+  (process.env.SNACKVOICE_BETA_EMAILS || "")
+    .split(",")
+    .map(normalizeEmail)
+    .filter(Boolean)
+);
 const S3_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "";
 const S3_URL_TTL = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || 86400);
 const FREE_WEEKLY_WORD_QUOTA = Number(process.env.FREE_WEEKLY_WORD_QUOTA || 1000);
@@ -1146,6 +1157,60 @@ async function createSignedDownloadUrl(key, filename) {
   return getSignedUrl(client, command, { expiresIn: S3_URL_TTL });
 }
 
+async function createSignedUpdaterArchiveUrl(key) {
+  if (!HAS_S3_DOWNLOAD || !key) return "";
+  const client = getS3Client();
+  const command = new GetObjectCommand({
+    Bucket: S3_BUCKET,
+    Key: key,
+  });
+  return getSignedUrl(client, command, { expiresIn: S3_URL_TTL });
+}
+
+function isBetaAllowedUser(user) {
+  if (!BETA_EMAILS.size) return false;
+  return BETA_EMAILS.has(normalizeEmail(user?.email || ""));
+}
+
+function getBetaUpdaterKeys(archSlug) {
+  if (archSlug === "x64") {
+    return {
+      manifestKey: "updater-beta/macos/x64/latest.json",
+      archiveKey: "updater-beta/macos/x64/SnackVoice.app.tar.gz",
+      platformKey: "darwin-x86_64",
+    };
+  }
+
+  return {
+    manifestKey: "updater-beta/macos/aarch64/latest.json",
+    archiveKey: "updater-beta/macos/aarch64/SnackVoice.app.tar.gz",
+    platformKey: "darwin-aarch64",
+  };
+}
+
+async function readS3TextObject(key) {
+  if (!HAS_S3_DOWNLOAD || !key) return "";
+  const client = getS3Client();
+  const response = await client.send(
+    new GetObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: key,
+    })
+  );
+  if (typeof response.Body?.transformToString === "function") {
+    return response.Body.transformToString();
+  }
+
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    response.Body.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    response.Body.on("error", reject);
+    response.Body.on("end", () =>
+      resolve(Buffer.concat(chunks).toString("utf8"))
+    );
+  });
+}
+
 function sanitizeVersionLabel(value) {
   if (!value || typeof value !== "string") return "";
   return value.trim().replace(/^v/i, "").replace(/[^0-9A-Za-z.+_-]/g, "");
@@ -1227,7 +1292,7 @@ function getS3DownloadConfigError() {
   return "";
 }
 
-async function createDownloadLinks() {
+async function createDownloadLinksForKeys({ arm64Key, x64Key }) {
   const configError = getS3DownloadConfigError();
   if (configError) {
     throw new Error(configError);
@@ -1235,25 +1300,39 @@ async function createDownloadLinks() {
 
   const [armInfo, intelInfo] = await Promise.all([
     resolveDownloadObjectInfo({
-      key: S3_KEY_ARM64,
+      key: arm64Key,
       archSuffix: "aarch64",
       defaultFilename: "SnackVoice-Apple-Silicon.dmg",
     }),
     resolveDownloadObjectInfo({
-      key: S3_KEY_X64,
+      key: x64Key,
       archSuffix: "x64",
       defaultFilename: "SnackVoice-Intel.dmg",
     }),
   ]);
 
   return {
-    appleSilicon: await createSignedDownloadUrl(S3_KEY_ARM64, armInfo.filename),
-    intel: await createSignedDownloadUrl(S3_KEY_X64, intelInfo.filename),
+    appleSilicon: await createSignedDownloadUrl(arm64Key, armInfo.filename),
+    intel: await createSignedDownloadUrl(x64Key, intelInfo.filename),
     metadata: {
       arm64: armInfo,
       x64: intelInfo,
     },
   };
+}
+
+async function createDownloadLinks() {
+  return createDownloadLinksForKeys({
+    arm64Key: S3_KEY_ARM64,
+    x64Key: S3_KEY_X64,
+  });
+}
+
+async function createBetaDownloadLinks() {
+  return createDownloadLinksForKeys({
+    arm64Key: S3_BETA_KEY_ARM64,
+    x64Key: S3_BETA_KEY_X64,
+  });
 }
 
 async function fetchStripeCheckoutSessionById(sessionId) {
@@ -2169,6 +2248,94 @@ async function handleLatestDownload(req, res) {
   res.end();
 }
 
+async function handleBetaDownload(req, res) {
+  const billing = await loadBilling();
+  const auth = await getAuthContext(req, billing);
+  if (!auth.ok) return json(res, auth.status, { error: auth.error });
+  if (auth.needsSave) await saveBilling(billing);
+
+  if (!isBetaAllowedUser(auth.user)) {
+    return json(res, 403, { error: "Beta access is not enabled for this account" });
+  }
+
+  const url = new URL(req.url, getBaseUrl(req));
+  const arch = String(url.searchParams.get("arch") || "arm64").toLowerCase();
+  const preferIntel = arch === "x64" || arch === "intel";
+  let links;
+  try {
+    links = await createBetaDownloadLinks();
+  } catch (error) {
+    return json(res, 503, {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Beta download is not configured yet",
+    });
+  }
+  const targetUrl = preferIntel
+    ? links.intel || links.appleSilicon
+    : links.appleSilicon || links.intel;
+  const targetMeta = preferIntel
+    ? links.metadata?.x64 || links.metadata?.arm64
+    : links.metadata?.arm64 || links.metadata?.x64;
+
+  if (!targetUrl) {
+    return json(res, 503, {
+      error: "Beta download is not configured yet",
+    });
+  }
+
+  const headers = {
+    Location: targetUrl,
+    "Cache-Control": "no-store",
+  };
+  if (targetMeta?.version) {
+    headers["X-SnackVoice-Version"] = targetMeta.version;
+  }
+  if (targetMeta?.filename) {
+    headers["X-SnackVoice-Filename"] = targetMeta.filename;
+  }
+
+  res.writeHead(302, headers);
+  res.end();
+}
+
+async function handleBetaUpdaterManifest(req, res, archSlug) {
+  const billing = await loadBilling();
+  const auth = await getAuthContext(req, billing);
+  if (!auth.ok) return json(res, auth.status, { error: auth.error });
+  if (auth.needsSave) await saveBilling(billing);
+
+  if (!isBetaAllowedUser(auth.user)) {
+    return json(res, 403, { error: "Beta access is not enabled for this account" });
+  }
+
+  const configError = getS3DownloadConfigError();
+  if (configError) {
+    return json(res, 503, { error: configError });
+  }
+
+  try {
+    const { manifestKey, archiveKey, platformKey } = getBetaUpdaterKeys(archSlug);
+    const manifestText = await readS3TextObject(manifestKey);
+    const manifest = JSON.parse(manifestText);
+    const archiveUrl = await createSignedUpdaterArchiveUrl(archiveKey);
+    if (!archiveUrl) {
+      return json(res, 503, { error: "Beta updater archive is not configured yet" });
+    }
+
+    manifest.platforms ??= {};
+    if (manifest.platforms[platformKey]) {
+      manifest.platforms[platformKey].url = archiveUrl;
+    }
+
+    return json(res, 200, manifest);
+  } catch (error) {
+    console.error("[updater] Failed to serve beta manifest:", error);
+    return json(res, 503, { error: "Beta updater is not available yet" });
+  }
+}
+
 async function handleStaticRequest(req, res) {
   const url = new URL(req.url, getBaseUrl(req));
   const requestedPath = url.pathname === "/" ? "/index.html" : url.pathname;
@@ -2247,6 +2414,15 @@ async function handleRequest(req, res) {
     if (req.method === "GET" && url.pathname === "/api/download/latest") {
       return await handleLatestDownload(req, res);
     }
+    if (req.method === "GET" && url.pathname === "/api/download/beta") {
+      return await handleBetaDownload(req, res);
+    }
+    const betaUpdaterMatch = url.pathname.match(
+      /^\/api\/updater\/beta\/macos\/(aarch64|x64)\/latest\.json$/
+    );
+    if (req.method === "GET" && betaUpdaterMatch) {
+      return await handleBetaUpdaterManifest(req, res, betaUpdaterMatch[1]);
+    }
     return await handleStaticRequest(req, res);
   } catch (err) {
     console.error("[server] Unhandled error:", err);
@@ -2276,4 +2452,6 @@ module.exports = {
   handleWebhook,
   handleOrderStatus,
   handleLatestDownload,
+  handleBetaDownload,
+  handleBetaUpdaterManifest,
 };
