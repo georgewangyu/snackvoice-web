@@ -131,6 +131,20 @@ class PostgresStorage {
         payload jsonb not null,
         updated_at timestamptz not null default now()
       );
+      alter table snackvoice_kv_users enable row level security;
+      alter table snackvoice_kv_subscriptions enable row level security;
+      alter table snackvoice_kv_checkout_sessions enable row level security;
+      alter table snackvoice_kv_webhook_events enable row level security;
+      alter table snackvoice_kv_sessions enable row level security;
+      alter table snackvoice_kv_desktop_auth_requests enable row level security;
+      alter table snackvoice_kv_orders enable row level security;
+      revoke all on table snackvoice_kv_users from anon, authenticated;
+      revoke all on table snackvoice_kv_subscriptions from anon, authenticated;
+      revoke all on table snackvoice_kv_checkout_sessions from anon, authenticated;
+      revoke all on table snackvoice_kv_webhook_events from anon, authenticated;
+      revoke all on table snackvoice_kv_sessions from anon, authenticated;
+      revoke all on table snackvoice_kv_desktop_auth_requests from anon, authenticated;
+      revoke all on table snackvoice_kv_orders from anon, authenticated;
     `);
     return this.schemaReady;
   }
