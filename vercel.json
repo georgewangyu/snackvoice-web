@@ -1,5 +1,29 @@
 {
   "version": 2,
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "snack-voice.vercel.app"
+        }
+      ],
+      "destination": "https://snackvoice.snackoverflowgeorge.com",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "snack-voice.vercel.app"
+        }
+      ],
+      "destination": "https://snackvoice.snackoverflowgeorge.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

@@ -2,6 +2,8 @@
 
 Landing page and purchase flow for SnackVoice, a Mac speech-to-text app.
 
+Live site: https://snackvoice.snackoverflowgeorge.com
+
 This repo contains the public marketing page, Stripe Checkout handoff, post-purchase success page, and download delivery logic for the desktop app. It is intentionally small: vanilla HTML/CSS/JS on the frontend, a Node server for checkout and webhook handling, and Puppeteer checks for the main user flow.
 
 ## What is here
