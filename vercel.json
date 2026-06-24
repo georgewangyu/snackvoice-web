@@ -13,14 +13,47 @@
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/desktop-auth.html",
       "has": [
         {
           "type": "host",
           "value": "snack-voice.vercel.app"
         }
       ],
-      "destination": "https://snackvoice.snackoverflowgeorge.com/:path*",
+      "destination": "https://snackvoice.snackoverflowgeorge.com/desktop-auth.html",
+      "permanent": true
+    },
+    {
+      "source": "/privacy.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "snack-voice.vercel.app"
+        }
+      ],
+      "destination": "https://snackvoice.snackoverflowgeorge.com/privacy.html",
+      "permanent": true
+    },
+    {
+      "source": "/terms.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "snack-voice.vercel.app"
+        }
+      ],
+      "destination": "https://snackvoice.snackoverflowgeorge.com/terms.html",
+      "permanent": true
+    },
+    {
+      "source": "/success.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "snack-voice.vercel.app"
+        }
+      ],
+      "destination": "https://snackvoice.snackoverflowgeorge.com/success.html",
       "permanent": true
     }
   ],
