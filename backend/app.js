@@ -2316,10 +2316,10 @@ async function handleBetaUpdaterManifest(req, res, archSlug) {
   }
 
   try {
-    const { manifestKey, archiveKey, platformKey } = getBetaUpdaterKeys(archSlug);
+    const { manifestKey, platformKey } = getBetaUpdaterKeys(archSlug);
     const manifestText = await readS3TextObject(manifestKey);
     const manifest = JSON.parse(manifestText);
-    const archiveUrl = await createSignedUpdaterArchiveUrl(archiveKey);
+    const archiveUrl = `${getBaseUrl(req)}/api/updater/beta/macos/${archSlug}/SnackVoice.app.tar.gz`;
     if (!archiveUrl) {
       return json(res, 503, { error: "Beta updater archive is not configured yet" });
     }
@@ -2333,6 +2333,39 @@ async function handleBetaUpdaterManifest(req, res, archSlug) {
   } catch (error) {
     console.error("[updater] Failed to serve beta manifest:", error);
     return json(res, 503, { error: "Beta updater is not available yet" });
+  }
+}
+
+async function handleBetaUpdaterArchive(req, res, archSlug) {
+  const billing = await loadBilling();
+  const auth = await getAuthContext(req, billing);
+  if (!auth.ok) return json(res, auth.status, { error: auth.error });
+  if (auth.needsSave) await saveBilling(billing);
+
+  if (!isBetaAllowedUser(auth.user)) {
+    return json(res, 403, { error: "Beta access is not enabled for this account" });
+  }
+
+  const configError = getS3DownloadConfigError();
+  if (configError) {
+    return json(res, 503, { error: configError });
+  }
+
+  try {
+    const { archiveKey } = getBetaUpdaterKeys(archSlug);
+    const archiveUrl = await createSignedUpdaterArchiveUrl(archiveKey);
+    if (!archiveUrl) {
+      return json(res, 503, { error: "Beta updater archive is not configured yet" });
+    }
+
+    res.writeHead(302, {
+      Location: archiveUrl,
+      "Cache-Control": "no-store",
+    });
+    res.end();
+  } catch (error) {
+    console.error("[updater] Failed to serve beta archive:", error);
+    return json(res, 503, { error: "Beta updater archive is not available yet" });
   }
 }
 
@@ -2423,6 +2456,12 @@ async function handleRequest(req, res) {
     if (req.method === "GET" && betaUpdaterMatch) {
       return await handleBetaUpdaterManifest(req, res, betaUpdaterMatch[1]);
     }
+    const betaUpdaterArchiveMatch = url.pathname.match(
+      /^\/api\/updater\/beta\/macos\/(aarch64|x64)\/SnackVoice\.app\.tar\.gz$/
+    );
+    if (req.method === "GET" && betaUpdaterArchiveMatch) {
+      return await handleBetaUpdaterArchive(req, res, betaUpdaterArchiveMatch[1]);
+    }
     return await handleStaticRequest(req, res);
   } catch (err) {
     console.error("[server] Unhandled error:", err);
@@ -2454,4 +2493,5 @@ module.exports = {
   handleLatestDownload,
   handleBetaDownload,
   handleBetaUpdaterManifest,
+  handleBetaUpdaterArchive,
 };
