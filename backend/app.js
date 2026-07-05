@@ -1188,6 +1188,22 @@ function getBetaUpdaterKeys(archSlug) {
   };
 }
 
+function getStableUpdaterKeys(archSlug) {
+  if (archSlug === "x64") {
+    return {
+      manifestKey: "updater/macos/x64/latest.json",
+      archiveKey: "updater/macos/x64/SnackVoice.app.tar.gz",
+      platformKey: "darwin-x86_64",
+    };
+  }
+
+  return {
+    manifestKey: "updater/macos/aarch64/latest.json",
+    archiveKey: "updater/macos/aarch64/SnackVoice.app.tar.gz",
+    platformKey: "darwin-aarch64",
+  };
+}
+
 async function readS3TextObject(key) {
   if (!HAS_S3_DOWNLOAD || !key) return "";
   const client = getS3Client();
@@ -2316,23 +2332,62 @@ async function handleBetaUpdaterManifest(req, res, archSlug) {
   }
 
   try {
-    const { manifestKey, platformKey } = getBetaUpdaterKeys(archSlug);
-    const manifestText = await readS3TextObject(manifestKey);
-    const manifest = JSON.parse(manifestText);
-    const archiveUrl = `${getBaseUrl(req)}/api/updater/beta/macos/${archSlug}/SnackVoice.app.tar.gz`;
-    if (!archiveUrl) {
-      return json(res, 503, { error: "Beta updater archive is not configured yet" });
-    }
-
-    manifest.platforms ??= {};
-    if (manifest.platforms[platformKey]) {
-      manifest.platforms[platformKey].url = archiveUrl;
-    }
-
-    return json(res, 200, manifest);
+    return await serveUpdaterManifest(res, getBetaUpdaterKeys(archSlug), {
+      signedArchiveRequiredMessage: "Beta updater archive is not configured yet",
+    });
   } catch (error) {
     console.error("[updater] Failed to serve beta manifest:", error);
     return json(res, 503, { error: "Beta updater is not available yet" });
+  }
+}
+
+async function serveUpdaterManifest(res, keys, options = {}) {
+  const manifestText = await readS3TextObject(keys.manifestKey);
+  const manifest = JSON.parse(manifestText);
+  const archiveUrl = await createSignedUpdaterArchiveUrl(keys.archiveKey);
+  if (!archiveUrl) {
+    return json(res, 503, {
+      error:
+        options.signedArchiveRequiredMessage ||
+        "Updater archive is not configured yet",
+    });
+  }
+
+  manifest.platforms ??= {};
+  if (manifest.platforms[keys.platformKey]) {
+    manifest.platforms[keys.platformKey].url = archiveUrl;
+  }
+
+  return json(res, 200, manifest);
+}
+
+async function getOptionalAuthContext(req, billing) {
+  if (!parseBearerToken(req)) return null;
+  const auth = await getAuthContext(req, billing);
+  if (auth.ok) return auth;
+  return null;
+}
+
+async function handleUnifiedUpdaterManifest(req, res, archSlug) {
+  const configError = getS3DownloadConfigError();
+  if (configError) {
+    return json(res, 503, { error: configError });
+  }
+
+  const billing = await loadBilling();
+  const auth = await getOptionalAuthContext(req, billing);
+  if (auth?.needsSave) await saveBilling(billing);
+
+  const betaAllowed = auth?.user && isBetaAllowedUser(auth.user);
+  const keys = betaAllowed
+    ? getBetaUpdaterKeys(archSlug)
+    : getStableUpdaterKeys(archSlug);
+
+  try {
+    return await serveUpdaterManifest(res, keys);
+  } catch (error) {
+    console.error("[updater] Failed to serve unified manifest:", error);
+    return json(res, 503, { error: "Updater is not available yet" });
   }
 }
 
@@ -2450,6 +2505,16 @@ async function handleRequest(req, res) {
     if (req.method === "GET" && url.pathname === "/api/download/beta") {
       return await handleBetaDownload(req, res);
     }
+    const unifiedUpdaterMatch = url.pathname.match(
+      /^\/api\/updater\/macos\/(aarch64|x64)\/latest\.json$/
+    );
+    if (req.method === "GET" && unifiedUpdaterMatch) {
+      return await handleUnifiedUpdaterManifest(
+        req,
+        res,
+        unifiedUpdaterMatch[1]
+      );
+    }
     const betaUpdaterMatch = url.pathname.match(
       /^\/api\/updater\/beta\/macos\/(aarch64|x64)\/latest\.json$/
     );
@@ -2492,6 +2557,7 @@ module.exports = {
   handleOrderStatus,
   handleLatestDownload,
   handleBetaDownload,
+  handleUnifiedUpdaterManifest,
   handleBetaUpdaterManifest,
   handleBetaUpdaterArchive,
 };
