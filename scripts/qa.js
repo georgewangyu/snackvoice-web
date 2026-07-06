@@ -108,10 +108,20 @@ async function run() {
   await page.type("#auth-email", qaEmail);
   await page.type("#auth-password", qaPassword);
   await page.click("#auth-signup-submit");
-  await new Promise((r) => setTimeout(r, 180));
+  await page.waitForFunction(
+    () => document.getElementById("auth-modal")?.hidden === true,
+    { timeout: 7000 }
+  ).catch(() => {});
 
   const modalHiddenAfterVerify = await page.$eval("#auth-modal", (el) => el.hidden);
   assert("Password auth closes auth modal", modalHiddenAfterVerify);
+  await page.waitForFunction(
+    () => {
+      const summary = document.getElementById("account-summary")?.textContent || "";
+      return summary.length > 0 && !summary.includes("Already subscribed");
+    },
+    { timeout: 3000 }
+  ).catch(() => {});
 
   const accountSummary = await page.$eval("#account-summary", (el) => el.textContent.trim());
   assert("Account panel updates after sign-in", !accountSummary.includes("Already subscribed"));
@@ -131,6 +141,7 @@ async function run() {
       }
       return {
         status: r.status,
+        type: r.type,
         location: r.headers.get("location") || "",
         body,
       };
@@ -140,11 +151,12 @@ async function run() {
   }, BASE);
   assert(
     "GET /api/download/latest returns known status",
-    apiRes.status === 302 || apiRes.status === 503
+    apiRes.status === 302 || apiRes.status === 503 || apiRes.type === "opaqueredirect"
   );
   const downloadHasExpectedPayload =
     (apiRes.status === 302 && apiRes.location.length > 0) ||
-    (apiRes.status === 503 && typeof apiRes.body?.error === "string");
+    (apiRes.status === 503 && typeof apiRes.body?.error === "string") ||
+    apiRes.type === "opaqueredirect";
   assert("Download API returns redirect or structured error", downloadHasExpectedPayload);
 
   // ── Success page ──────────────────────────────────────────────────────────
