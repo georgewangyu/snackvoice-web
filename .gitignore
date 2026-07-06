@@ -8,3 +8,4 @@ backend/data/
 .wrangler/
 .DS_Store
 .vercel
+supabase/.temp/
