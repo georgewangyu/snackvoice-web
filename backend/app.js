@@ -2333,6 +2333,7 @@ async function handleBetaUpdaterManifest(req, res, archSlug) {
 
   try {
     return await serveUpdaterManifest(res, getBetaUpdaterKeys(archSlug), {
+      archiveUrl: `${getBaseUrl(req)}/api/updater/beta/macos/${archSlug}/SnackVoice.app.tar.gz`,
       signedArchiveRequiredMessage: "Beta updater archive is not configured yet",
     });
   } catch (error) {
@@ -2344,7 +2345,8 @@ async function handleBetaUpdaterManifest(req, res, archSlug) {
 async function serveUpdaterManifest(res, keys, options = {}) {
   const manifestText = await readS3TextObject(keys.manifestKey);
   const manifest = JSON.parse(manifestText);
-  const archiveUrl = await createSignedUpdaterArchiveUrl(keys.archiveKey);
+  const archiveUrl =
+    options.archiveUrl || (await createSignedUpdaterArchiveUrl(keys.archiveKey));
   if (!archiveUrl) {
     return json(res, 503, {
       error:
