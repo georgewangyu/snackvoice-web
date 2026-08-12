@@ -14,6 +14,7 @@
     "dev:full": "bash scripts/dev.sh",
     "test:subscription:integration": "node scripts/subscription-integration-test.js",
     "test:closed-loop": "node scripts/test-closed-loop.js",
+    "test:updater-archive-key": "node scripts/test-updater-manifest-archive-key.js",
     "db:migrate:json-to-supabase": "node scripts/migrate-json-to-supabase.js"
   },
   "dependencies": {

@@ -16,6 +16,7 @@ const {
   HeadObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { resolveUpdaterArchiveKey } = require("./updater-manifest");
 
 const DEFAULT_ENV_PATH = path.join(__dirname, ".env");
 const ENV_PATH = process.env.ENV_FILE
@@ -2336,17 +2337,27 @@ async function handleBetaUpdaterManifest(req, res, archSlug) {
       archiveUrl: `${getBaseUrl(req)}/api/updater/beta/macos/${archSlug}/SnackVoice.app.tar.gz`,
       signedArchiveRequiredMessage: "Beta updater archive is not configured yet",
     });
-  } catch (error) {
-    console.error("[updater] Failed to serve beta manifest:", error);
+  } catch {
+    console.error("[updater] Failed to serve beta manifest");
     return json(res, 503, { error: "Beta updater is not available yet" });
   }
 }
 
 async function serveUpdaterManifest(res, keys, options = {}) {
-  const manifestText = await readS3TextObject(keys.manifestKey);
+  const readManifest = options.readManifest || readS3TextObject;
+  const signArchive = options.signArchive || createSignedUpdaterArchiveUrl;
+  const manifestText = await readManifest(keys.manifestKey);
   const manifest = JSON.parse(manifestText);
+  const expectedS3Origin =
+    options.expectedS3Origin ||
+    `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com`;
+  const archiveKey = resolveUpdaterArchiveKey(
+    manifest,
+    keys,
+    expectedS3Origin,
+  );
   const archiveUrl =
-    options.archiveUrl || (await createSignedUpdaterArchiveUrl(keys.archiveKey));
+    options.archiveUrl || (await signArchive(archiveKey));
   if (!archiveUrl) {
     return json(res, 503, {
       error:
@@ -2361,6 +2372,31 @@ async function serveUpdaterManifest(res, keys, options = {}) {
   }
 
   return json(res, 200, manifest);
+}
+
+async function serveUpdaterArchiveRedirect(res, keys, options = {}) {
+  const readManifest = options.readManifest || readS3TextObject;
+  const signArchive = options.signArchive || createSignedUpdaterArchiveUrl;
+  const manifestText = await readManifest(keys.manifestKey);
+  const manifest = JSON.parse(manifestText);
+  const expectedS3Origin =
+    options.expectedS3Origin ||
+    `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com`;
+  const archiveKey = resolveUpdaterArchiveKey(
+    manifest,
+    keys,
+    expectedS3Origin,
+  );
+  const archiveUrl = await signArchive(archiveKey);
+  if (!archiveUrl) {
+    return json(res, 503, { error: "Updater archive is not configured yet" });
+  }
+
+  res.writeHead(302, {
+    Location: archiveUrl,
+    "Cache-Control": "no-store",
+  });
+  res.end();
 }
 
 async function getOptionalAuthContext(req, billing) {
@@ -2387,8 +2423,8 @@ async function handleUnifiedUpdaterManifest(req, res, archSlug) {
 
   try {
     return await serveUpdaterManifest(res, keys);
-  } catch (error) {
-    console.error("[updater] Failed to serve unified manifest:", error);
+  } catch {
+    console.error("[updater] Failed to serve unified manifest");
     return json(res, 503, { error: "Updater is not available yet" });
   }
 }
@@ -2409,19 +2445,10 @@ async function handleBetaUpdaterArchive(req, res, archSlug) {
   }
 
   try {
-    const { archiveKey } = getBetaUpdaterKeys(archSlug);
-    const archiveUrl = await createSignedUpdaterArchiveUrl(archiveKey);
-    if (!archiveUrl) {
-      return json(res, 503, { error: "Beta updater archive is not configured yet" });
-    }
-
-    res.writeHead(302, {
-      Location: archiveUrl,
-      "Cache-Control": "no-store",
-    });
-    res.end();
-  } catch (error) {
-    console.error("[updater] Failed to serve beta archive:", error);
+    const keys = getBetaUpdaterKeys(archSlug);
+    return await serveUpdaterArchiveRedirect(res, keys);
+  } catch {
+    console.error("[updater] Failed to serve beta archive");
     return json(res, 503, { error: "Beta updater archive is not available yet" });
   }
 }
@@ -2562,4 +2589,7 @@ module.exports = {
   handleUnifiedUpdaterManifest,
   handleBetaUpdaterManifest,
   handleBetaUpdaterArchive,
+  serveUpdaterManifest,
+  serveUpdaterArchiveRedirect,
+  resolveUpdaterArchiveKey,
 };
