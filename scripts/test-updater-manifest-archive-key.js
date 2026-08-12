@@ -210,7 +210,42 @@ async function testProtectedBetaDelivery() {
   );
 }
 
-testProtectedBetaDelivery()
+async function testStableEndpointIgnoresBetaEligibleAuthentication() {
+  const appModule = require("../backend/app");
+  const response = {
+    status: null,
+    headers: null,
+    body: "",
+    writeHead(status, headers) {
+      this.status = status;
+      this.headers = headers;
+    },
+    end(body = "") {
+      this.body = body;
+    },
+  };
+  let selectedKeys = null;
+
+  await appModule.handleUnifiedUpdaterManifest(
+    { headers: { authorization: "Bearer beta-eligible-fixture" } },
+    response,
+    "aarch64",
+    {
+      getConfigError: () => "",
+      serveManifest: async (_res, candidateKeys) => {
+        selectedKeys = candidateKeys;
+        return "served";
+      },
+    },
+  );
+
+  assert.deepStrictEqual(selectedKeys, keys);
+}
+
+Promise.all([
+  testProtectedBetaDelivery(),
+  testStableEndpointIgnoresBetaEligibleAuthentication(),
+])
   .then(() => console.log("SnackVoice updater archive-key tests passed."))
   .catch((error) => {
     console.error(error);

@@ -2406,23 +2406,23 @@ async function getOptionalAuthContext(req, billing) {
   return null;
 }
 
-async function handleUnifiedUpdaterManifest(req, res, archSlug) {
-  const configError = getS3DownloadConfigError();
+async function handleUnifiedUpdaterManifest(req, res, archSlug, options = {}) {
+  const configError = (
+    options.getConfigError || getS3DownloadConfigError
+  )();
   if (configError) {
     return json(res, 503, { error: configError });
   }
 
-  const billing = await loadBilling();
-  const auth = await getOptionalAuthContext(req, billing);
-  if (auth?.needsSave) await saveBilling(billing);
-
-  const betaAllowed = auth?.user && isBetaAllowedUser(auth.user);
-  const keys = betaAllowed
-    ? getBetaUpdaterKeys(archSlug)
-    : getStableUpdaterKeys(archSlug);
+  // The unified endpoint is the production/stable channel embedded in stable
+  // app bundles. An account bearer token must not silently reroute that app to
+  // beta. Beta delivery remains available only through the explicit protected
+  // /api/updater/beta/... routes above.
+  const keys = getStableUpdaterKeys(archSlug);
+  const serveManifest = options.serveManifest || serveUpdaterManifest;
 
   try {
-    return await serveUpdaterManifest(res, keys);
+    return await serveManifest(res, keys);
   } catch {
     console.error("[updater] Failed to serve unified manifest");
     return json(res, 503, { error: "Updater is not available yet" });
