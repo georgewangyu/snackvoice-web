@@ -17,6 +17,10 @@ const {
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { resolveUpdaterArchiveKey } = require("./updater-manifest");
+const {
+  getCloudFrontDownloadConfig,
+  createCloudFrontSignedUrl,
+} = require("./download-urls");
 
 const DEFAULT_ENV_PATH = path.join(__dirname, ".env");
 const ENV_PATH = process.env.ENV_FILE
@@ -70,6 +74,9 @@ const BETA_EMAILS = new Set(
 );
 const S3_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "";
 const S3_URL_TTL = Number(process.env.S3_SIGNED_URL_TTL_SECONDS || 86400);
+// When set, download links are CloudFront signed URLs instead of S3 presigned
+// URLs, so no bucket name or access key id appears in the link.
+const CLOUDFRONT_DOWNLOAD = getCloudFrontDownloadConfig();
 const FREE_WEEKLY_WORD_QUOTA = Number(process.env.FREE_WEEKLY_WORD_QUOTA || 1000);
 const WEEKLY_RESET_DAY_UTC = Number(process.env.WEEKLY_RESET_DAY_UTC || 1); // 0=Sun, 1=Mon
 const OUTAGE_GRACE_HOURS = Number(process.env.OUTAGE_GRACE_HOURS || 12);
@@ -1146,20 +1153,40 @@ function verifyStripeSignature(rawBody, sigHeader, secret) {
   return expected === parts.v1;
 }
 
-async function createSignedDownloadUrl(key, filename) {
+async function createSignedDownloadUrl(key, filename, options = {}) {
   if (!HAS_S3_DOWNLOAD || !key) return "";
+  const cloudFront =
+    options.cloudFront === undefined ? CLOUDFRONT_DOWNLOAD : options.cloudFront;
+  const contentType = "application/x-apple-diskimage";
+  const contentDisposition = `attachment; filename="${filename}"`;
+  if (cloudFront) {
+    return createCloudFrontSignedUrl(cloudFront, key, {
+      ttlSeconds: S3_URL_TTL,
+      responseHeaders: {
+        "response-content-disposition": contentDisposition,
+        "response-content-type": contentType,
+      },
+    });
+  }
   const client = getS3Client();
   const command = new GetObjectCommand({
     Bucket: S3_BUCKET,
     Key: key,
-    ResponseContentType: "application/x-apple-diskimage",
-    ResponseContentDisposition: `attachment; filename="${filename}"`,
+    ResponseContentType: contentType,
+    ResponseContentDisposition: contentDisposition,
   });
   return getSignedUrl(client, command, { expiresIn: S3_URL_TTL });
 }
 
-async function createSignedUpdaterArchiveUrl(key) {
+async function createSignedUpdaterArchiveUrl(key, options = {}) {
   if (!HAS_S3_DOWNLOAD || !key) return "";
+  const cloudFront =
+    options.cloudFront === undefined ? CLOUDFRONT_DOWNLOAD : options.cloudFront;
+  if (cloudFront) {
+    return createCloudFrontSignedUrl(cloudFront, key, {
+      ttlSeconds: S3_URL_TTL,
+    });
+  }
   const client = getS3Client();
   const command = new GetObjectCommand({
     Bucket: S3_BUCKET,
@@ -2592,4 +2619,6 @@ module.exports = {
   serveUpdaterManifest,
   serveUpdaterArchiveRedirect,
   resolveUpdaterArchiveKey,
+  createSignedDownloadUrl,
+  createSignedUpdaterArchiveUrl,
 };

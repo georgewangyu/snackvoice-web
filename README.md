@@ -54,6 +54,30 @@ Required S3 settings:
 - `S3_KEY_ARM64`
 - `S3_KEY_X64`
 - `AWS_REGION`
+- `S3_SIGNED_URL_TTL_SECONDS` (link lifetime, default 86400)
+
+Optional CloudFront delivery. When all three are set, the DMG download links
+and updater archive links the backend signs are CloudFront signed URLs, so they
+do not expose the bucket, account, or access key id. When all are unset, links
+fall back to S3 presigned URLs (preview and local dev). A partial or invalid
+config also falls back, and logs a warning. Object metadata reads stay on S3.
+
+- `CLOUDFRONT_DOWNLOAD_DOMAIN` (bare hostname, for example `downloads.example.com`)
+- `CLOUDFRONT_KEY_PAIR_ID` (public key id in the distribution's trusted key group)
+- `CLOUDFRONT_PRIVATE_KEY` (PEM; literal `\n` sequences are accepted)
+
+The CloudFront distribution is configured outside this repo. It needs:
+
+- A default behavior that requires signed URLs, does not cache (DMGs are
+  overwritten at fixed keys), and forwards only the
+  `response-content-disposition` and `response-content-type` query strings to S3
+  so downloads keep their versioned filename.
+- Any public behaviors (for example the stable updater archive prefix) must not
+  forward query strings, so the extra signature parameters are ignored there.
+
+```bash
+npm run test:download-urls
+```
 
 ## Status
 

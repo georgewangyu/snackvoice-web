@@ -15,10 +15,12 @@
     "test:subscription:integration": "node scripts/subscription-integration-test.js",
     "test:closed-loop": "node scripts/test-closed-loop.js",
     "test:updater-archive-key": "node scripts/test-updater-manifest-archive-key.js",
+    "test:download-urls": "node scripts/test-download-urls.js",
     "db:migrate:json-to-supabase": "node scripts/migrate-json-to-supabase.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.940.0",
+    "@aws-sdk/cloudfront-signer": "^3.1138.0",
     "@aws-sdk/s3-request-presigner": "^3.940.0",
     "pg": "^8.20.0"
   },
@@ -26,6 +28,6 @@
     "puppeteer": "^22.0.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

@@ -36,6 +36,7 @@ User clicks CTA
 
 - Use S3 as the download source of truth (same bucket path updated by SnackVoice release pipeline)
 - Configure `S3_BUCKET`, `S3_KEY_ARM64`, `S3_KEY_X64`, and `AWS_REGION` in `.env`
+- Optional: set `CLOUDFRONT_DOWNLOAD_DOMAIN`, `CLOUDFRONT_KEY_PAIR_ID`, `CLOUDFRONT_PRIVATE_KEY` to serve CloudFront signed links (see README)
 - User downloads, drags to Applications, and launches
 
 ## Key Files
