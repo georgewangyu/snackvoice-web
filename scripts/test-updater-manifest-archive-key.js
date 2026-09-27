@@ -8,7 +8,8 @@ const keys = {
   archiveKey: "updater/macos/aarch64/SnackVoice.app.tar.gz",
   platformKey: "darwin-aarch64",
 };
-const origin = "https://downloads.example.s3.us-west-2.amazonaws.com";
+const region = "us-west-2";
+const origin = `https://downloads.example.s3.${region}.amazonaws.com`;
 
 function manifest(version, url) {
   return {
